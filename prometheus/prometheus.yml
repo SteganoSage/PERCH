@@ -1,4 +1,4 @@
-# Scrape config for PERCH. 2s interval (CLAUDE.md §3): fast enough that a bake window holds enough
+# Scrape config for PERCH. 2s interval : fast enough that a bake window holds enough
 # samples to decide on, slow enough not to distort the latency it is measuring.
 global:
   scrape_interval: 2s

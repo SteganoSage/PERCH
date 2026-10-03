@@ -14,6 +14,10 @@ results/*
 # Rendered proxy config (generated at runtime from nginx.conf.j2)
 proxy/nginx.conf
 
+# Bind-mount directory for live nginx config (written by controller at runtime)
+proxy-conf/*
+!proxy-conf/.gitkeep
+
 # Editor / OS
 .vscode/
 .idea/

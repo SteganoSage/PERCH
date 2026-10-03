@@ -1,5 +1,4 @@
-# PERCH stack. Scaffolding — service definitions are shaped per CLAUDE.md §3/§4 but the images
-# they build are still stubs until Phase 1 (CLAUDE.md §7) is implemented.
+name: perch
 
 services:
   stable:
@@ -11,13 +10,22 @@ services:
       LATENCY_MS_JITTER: ${STABLE_LATENCY_MS_JITTER:-10}
     ports:
       - "${STABLE_PORT:-8091}:8000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')",
+        ]
+      interval: 2s
+      timeout: 2s
+      retries: 20
 
   canary:
     build: ./services/canary
     environment:
       SERVICE_NAME: canary
-      # Scenario scripts (scenarios/*.sh) overwrite these and restart this container —
-      # "shipping a broken canary" is an env-var change, never a code fork (CLAUDE.md §5.1).
       ERROR_RATE: ${CANARY_ERROR_RATE:-0.0}
       LATENCY_MS_MEAN: ${CANARY_LATENCY_MS_MEAN:-40}
       LATENCY_MS_JITTER: ${CANARY_LATENCY_MS_JITTER:-10}
@@ -25,37 +33,85 @@ services:
       DEGRADE_RAMP_SECONDS: ${CANARY_DEGRADE_RAMP_SECONDS:-}
     ports:
       - "${CANARY_PORT:-8092}:8000"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')",
+        ]
+      interval: 2s
+      timeout: 2s
+      retries: 20
 
   proxy:
     build: ./proxy
-    depends_on: [stable, canary]
+    container_name: perch-proxy
+    depends_on:
+      stable:
+        condition: service_healthy
+      canary:
+        condition: service_healthy
     ports:
       - "${PROXY_PORT:-8080}:80"
     volumes:
-      # Shared with the controller: it renders nginx.conf.j2 here, then triggers a reload.
-      - proxy-conf:/etc/nginx/conf.d
+      - ./proxy-conf:/etc/nginx/conf.d
 
   prometheus:
     image: prom/prometheus:v2.53.0
-    depends_on: [stable, canary]
+    depends_on:
+      stable:
+        condition: service_healthy
+      canary:
+        condition: service_healthy
     ports:
       - "${PROMETHEUS_PORT:-9095}:9090"
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
 
   controller:
-    build: ./controller
-    depends_on: [prometheus, proxy]
+    build:
+      context: .
+      dockerfile: controller/Dockerfile
+    container_name: perch-controller
+    depends_on:
+      prometheus:
+        condition: service_started
+      proxy:
+        condition: service_started
     environment:
       PROMETHEUS_URL: ${PROMETHEUS_URL:-http://prometheus:9090}
       DECISION_MODE: ${DECISION_MODE:-tier1}
       POLL_INTERVAL_SECONDS: ${POLL_INTERVAL_SECONDS:-5}
-      PROXY_CONTAINER: perch-proxy-1
+      RAMP_BAKE_SECONDS: ${RAMP_BAKE_SECONDS:-25}
+      RAMP_STAGES: ${RAMP_STAGES:-5,10,25,50,100}
+      MIN_SAMPLES_PER_WINDOW: ${MIN_SAMPLES_PER_WINDOW:-40}
+      LATENCY_TOLERANCE: ${LATENCY_TOLERANCE:-1.5}
+      PROXY_CONTAINER: perch-proxy
+      TEMPLATE_PATH: /app/nginx.conf.j2
+      NGINX_CONF_PATH: /etc/nginx/conf.d/default.conf
+      DECISION_LOG_PATH: /results/decision_log.jsonl
     volumes:
-      - proxy-conf:/etc/nginx/conf.d
+      - ./proxy-conf:/etc/nginx/conf.d
       - ./results:/results
-      # Lets the controller run `nginx -s reload` in the proxy container after rendering.
-      - /var/run/docker.sock:/var/run/docker.sock
+      - ./proxy/nginx.conf.j2:/app/nginx.conf.j2:ro
 
-volumes:
-  proxy-conf:
+  loadgen:
+    build: ./loadgen
+    profiles: ["load"]
+    depends_on:
+      - proxy
+    environment:
+      LOADGEN_TARGET: http://proxy:80
+      LOADGEN_RPS: ${LOADGEN_RPS:-50}
+      LOADGEN_DURATION: "0"
+      LOADGEN_MIX: ${LOADGEN_MIX:-work:2,work/checkout:1}
+      LOADGEN_OUTPUT: /results/loadgen.jsonl
+    volumes:
+      - ./results:/results
+
