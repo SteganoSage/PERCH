@@ -5,6 +5,7 @@ services:
     build: ./services/stable
     environment:
       SERVICE_NAME: stable
+      BASE_ERROR_RATE: ${BASE_ERROR_RATE:-0.01}
       ERROR_RATE: ${STABLE_ERROR_RATE:-0.0}
       LATENCY_MS_MEAN: ${STABLE_LATENCY_MS_MEAN:-40}
       LATENCY_MS_JITTER: ${STABLE_LATENCY_MS_JITTER:-10}
@@ -26,6 +27,7 @@ services:
     build: ./services/canary
     environment:
       SERVICE_NAME: canary
+      BASE_ERROR_RATE: ${BASE_ERROR_RATE:-0.01}
       ERROR_RATE: ${CANARY_ERROR_RATE:-0.0}
       LATENCY_MS_MEAN: ${CANARY_LATENCY_MS_MEAN:-40}
       LATENCY_MS_JITTER: ${CANARY_LATENCY_MS_JITTER:-10}

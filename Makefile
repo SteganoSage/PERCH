@@ -39,7 +39,7 @@ demo-all:
 test: unit e2e
 
 unit:
-	$(PYTHON) -m pytest tests/test_decision.py tests/test_ramp.py tests/test_proxy_writer.py -v
+	$(PYTHON) -m pytest tests/test_decision.py tests/test_stats.py tests/test_ramp.py tests/test_proxy_writer.py -v
 
 e2e:
 	$(PYTHON) -m pytest tests/test_e2e.py -v

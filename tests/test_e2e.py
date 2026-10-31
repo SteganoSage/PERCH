@@ -61,19 +61,24 @@ def test_app_py_files_are_byte_identical() -> None:
     assert stable == canary
 
 
+def _assert_work_response(response: httpx.Response, services: set[str]) -> None:
+    """A /work answer from the right service. Both versions fail a background share of requests
+    (BASE_ERROR_RATE), so a 500 is a valid answer as long as it is the app's own."""
+    assert response.status_code in (200, 500)
+    body = response.json()
+    assert body["service"] in services
+    assert body["ok"] is (response.status_code == 200)
+
+
 def test_direct_health_and_work(stack_up: None) -> None:
-    for base in (STABLE, CANARY):
+    for base, name in ((STABLE, "stable"), (CANARY, "canary")):
         health = httpx.get(f"{base}/health", timeout=5.0)
         assert health.status_code == 200
-        work = httpx.get(f"{base}/work", timeout=5.0)
-        assert work.status_code == 200
-        assert work.json()["ok"] is True
+        _assert_work_response(httpx.get(f"{base}/work", timeout=5.0), {name})
 
 
 def test_proxy_serves_work(stack_up: None) -> None:
-    response = httpx.get(f"{PROXY}/work", timeout=5.0)
-    assert response.status_code == 200
-    assert response.json()["service"] in {"stable", "canary"}
+    _assert_work_response(httpx.get(f"{PROXY}/work", timeout=5.0), {"stable", "canary"})
 
 
 def test_metrics_labelled_by_service(stack_up: None) -> None:

@@ -21,7 +21,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from config import ControllerConfig, DecisionMode, from_env
-from decision import Decision, evaluate
+from decision import Decision, SprtState, evaluate, evaluate_tier2_sprt
 from metrics import PrometheusClient
 from proxy_writer import ProxyWriter
 from ramp import RampState, apply_decision, initial_state
@@ -158,12 +158,24 @@ def run(cfg: ControllerConfig) -> None:
     writer.apply(state.stable_weight, state.canary_weight, force=True)
 
     window = cfg.ramp.bake_seconds
+    sprt: SprtState | None = None
     while True:
         loop_start = time.time()
         try:
-            canary = prom.sample("canary", window)
-            stable = prom.sample("stable", window)
-            evaluated = evaluate(canary, stable, cfg.decision, mode)
+            canary = prom.sample("canary", window, at=loop_start)
+            stable = prom.sample("stable", window, at=loop_start)
+            if mode == "tier2_sprt":
+                evaluated, sprt = evaluate_tier2_sprt(
+                    canary,
+                    stable,
+                    prom.counters("canary", at=loop_start),
+                    sprt,
+                    state.stage_index,
+                    len(cfg.ramp.stages),
+                    cfg.decision,
+                )
+            else:
+                evaluated = evaluate(canary, stable, cfg.decision, mode)
             new_state, taken = apply_decision(state, evaluated, cfg.ramp, loop_start)
             if new_state.canary_weight != state.canary_weight:
                 writer.apply(new_state.stable_weight, new_state.canary_weight)

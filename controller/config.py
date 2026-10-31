@@ -17,20 +17,40 @@ DecisionMode = Literal["naive_threshold", "tier1", "tier2_sprt"]
 class DecisionConfig:
     """Parameters of the rollback decision itself."""
 
-    # Statistical detector (Tier 1) --------------------------------------------------------
+    # Shared by Tier 1 and Tier 2 ------------------------------------------------------------
     alpha: float = 0.05
-    """False-positive rate for the two-proportion test. 5% is the conventional choice; a rolled-back
-    good release costs a deploy cycle, so we are not paying for anything stricter."""
+    """False-rollback budget. Tier 1 uses it per test (two-sided Wilson intervals, re-run every
+    poll); Tier 2 spends it across the whole rollout (see `sequential_alpha`). 5% is the
+    conventional choice; a rolled-back good release costs one deploy cycle, so nothing stricter."""
 
     beta: float = 0.10
-    """False-negative rate, used by the Tier 2 SPRT boundaries. Missing a genuinely bad canary is
-    the more expensive error, hence beta < alpha in effect (10% miss vs. 5% false alarm)."""
+    """Miss probability of each Tier 2 test. Looser than alpha on purpose: a bad canary that slips
+    through one stage's test is tested again, from scratch, at every later stage, so its chance of
+    reaching 100% unnoticed is roughly beta^stages, while a false rollback is final."""
+
+    ambiguous_error_delta: float = 0.01
+    """Tier 1 borderline rule: a canary at least 1 percentage point worse than stable whose interval
+    still includes 0 holds instead of advancing. Not proven bad, but not shown fine either, so
+    exposure is not widened on it."""
+
+    absolute_error_ceiling: float = 0.05
+    """Tier 1's fallback at 100% canary, when stable gets no traffic to compare against: roll back
+    if the canary's error rate is significantly above 5%, the same margin the naive rule uses."""
+
+    # Sequential detector (Tier 2) ----------------------------------------------------------
+    sequential_min_effect: float = 0.05
+    """The regression each Tier 2 test is built to catch: H1 is "the canary's rate is 5 percentage
+    points worse than stable's", for errors and for the share of slow requests alike. Matches the
+    naive rule's margin, so all three modes agree on what "bad" means and differ only in how they
+    decide it."""
 
     min_samples_per_window: int = 40
-    """No decision other than `hold` below this many canary requests in the window. At 5% of 50 rps
-    a 25s bake window sees ~62 canary requests, so the first stage can actually decide. 40 is enough
-    to see a 30% vs 0% error spike clearly, and small enough that a 2-error blip on 20 requests
-    (10%) is still refused as noise."""
+    """Tier 1: no decision other than `hold` below this many canary requests in the window. At 5% of
+    50 rps a 25s bake window sees ~62 canary requests, so the first stage can actually decide. 40 is
+    enough to see a 30% vs 0% error spike clearly, and small enough that a 2-error blip on 20
+    requests (10%) is still refused as noise. Tier 2 needs no such floor (its evidence boundaries
+    already account for sample size) and uses this only as the stable traffic required before
+    stable's rates are trusted as its reference."""
 
     latency_tolerance: float = 1.5
     """Canary p95 may be up to 1.5x stable p95 before the latency signal fires. Below this, normal
@@ -44,6 +64,19 @@ class DecisionConfig:
     naive_latency_multiplier: float = 1.5
     """Baseline latency rule, matched to `latency_tolerance` so the comparison isolates the effect
     of the *statistics*, not of a differently-tuned threshold."""
+
+    def sequential_alpha(self, stages: int) -> float:
+        """Per-test false-alarm rate for Tier 2.
+
+        One test per signal (errors, latency) per ramp stage, so a good canary faces
+        2 x stages tests; splitting alpha evenly (Bonferroni) keeps its chance of any false
+        rollback over the whole rollout at or under alpha.
+        """
+        return self.alpha / (SEQUENTIAL_SIGNALS * stages)
+
+
+SEQUENTIAL_SIGNALS = 2
+"""Tier 2 runs one test for errors and one for latency per stage."""
 
 
 @dataclass(frozen=True)
@@ -104,6 +137,9 @@ def from_env() -> ControllerConfig:
         beta=_env_float("DECISION_BETA", 0.10),
         min_samples_per_window=_env_int("MIN_SAMPLES_PER_WINDOW", 40),
         latency_tolerance=_env_float("LATENCY_TOLERANCE", 1.5),
+        ambiguous_error_delta=_env_float("AMBIGUOUS_ERROR_DELTA", 0.01),
+        absolute_error_ceiling=_env_float("ABSOLUTE_ERROR_CEILING", 0.05),
+        sequential_min_effect=_env_float("SEQUENTIAL_MIN_EFFECT", 0.05),
         naive_error_rate_delta=_env_float("NAIVE_ERROR_RATE_DELTA", 0.05),
         naive_latency_multiplier=_env_float("NAIVE_LATENCY_MULTIPLIER", 1.5),
     )

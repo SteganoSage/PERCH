@@ -4,7 +4,11 @@ Stable and canary run this exact file. The only differences between a healthy
 release and a broken one are environment variables set at container start:
 
     SERVICE_NAME           Label on /metrics ("stable" or "canary").
-    ERROR_RATE             Probability a /work request returns HTTP 500.
+    BASE_ERROR_RATE        Background failure probability on every /work
+                           request, set the same on both versions: real
+                           services are never at exactly 0% errors.
+    ERROR_RATE             Injected fault: extra probability a /work request
+                           returns HTTP 500, on top of the background rate.
     LATENCY_MS_MEAN        Mean injected delay before the response.
     LATENCY_MS_JITTER      Std-dev of that delay (gaussian).
     DEGRADE_ENDPOINT       If set, only this path is faulty (partial failure).
@@ -28,6 +32,7 @@ from fastapi.responses import JSONResponse
 from prometheus_client import CONTENT_TYPE_LATEST, Counter, Histogram, generate_latest
 
 SERVICE_NAME = os.environ.get("SERVICE_NAME", "unknown")
+BASE_ERROR_RATE = float(os.environ.get("BASE_ERROR_RATE", "0.0"))
 ERROR_RATE = float(os.environ.get("ERROR_RATE", "0.0"))
 LATENCY_MS_MEAN = float(os.environ.get("LATENCY_MS_MEAN", "40"))
 LATENCY_MS_JITTER = float(os.environ.get("LATENCY_MS_JITTER", "10"))
@@ -113,13 +118,19 @@ def path_is_faulted(path: str) -> bool:
 
 
 def behaviour_for(path: str) -> tuple[float, float, float]:
-    """Return (delay_mean_ms, delay_jitter_ms, error_probability) for this request."""
+    """Return (delay_mean_ms, delay_jitter_ms, error_probability) for this request.
+
+    The background error rate applies everywhere and never ramps; the fault
+    is scoped by DEGRADE_ENDPOINT and ramped by DEGRADE_RAMP_SECONDS. The two
+    fail independently.
+    """
     if not path_is_faulted(path):
-        return HEALTHY_MEAN_MS, HEALTHY_JITTER_MS, 0.0
+        return HEALTHY_MEAN_MS, HEALTHY_JITTER_MS, BASE_ERROR_RATE
     scale = fault_scale()
     delay_mean = HEALTHY_MEAN_MS + (LATENCY_MS_MEAN - HEALTHY_MEAN_MS) * scale
     delay_jitter = HEALTHY_JITTER_MS + (LATENCY_MS_JITTER - HEALTHY_JITTER_MS) * scale
-    return delay_mean, delay_jitter, ERROR_RATE * scale
+    error_p = 1.0 - (1.0 - BASE_ERROR_RATE) * (1.0 - ERROR_RATE * scale)
+    return delay_mean, delay_jitter, error_p
 
 
 @app.get("/health")
