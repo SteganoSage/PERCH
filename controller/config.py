@@ -110,8 +110,7 @@ def from_env() -> ControllerConfig:
     ramp = RampConfig(
         stages=stages,
         bake_seconds=_env_int("RAMP_BAKE_SECONDS", 25),
-        rollback_is_terminal=os.environ.get("ROLLBACK_IS_TERMINAL", "true").lower()
-        != "false",
+        rollback_is_terminal=os.environ.get("ROLLBACK_IS_TERMINAL", "true").lower() != "false",
     )
     return ControllerConfig(
         poll_interval_seconds=_env_int("POLL_INTERVAL_SECONDS", 5),

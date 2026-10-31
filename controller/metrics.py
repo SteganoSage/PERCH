@@ -10,7 +10,6 @@ import math
 import time
 
 import httpx
-
 from decision import MetricSample
 
 

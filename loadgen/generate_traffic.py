@@ -54,7 +54,7 @@ def pick_path(mix: list[tuple[str, float]]) -> str:
     Returns:
         A randomly chosen path string (prefixed with '/').
     """
-    paths, weights = zip(*mix)
+    paths, weights = zip(*mix, strict=True)
     chosen = random.choices(list(paths), weights=list(weights), k=1)[0]
     return "/" + chosen.lstrip("/")
 

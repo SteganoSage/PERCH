@@ -1,0 +1,15 @@
+{
+  "scenario": "bad-error",
+  "expect": "rollback",
+  "ok": true,
+  "decision_mode": "tier1",
+  "final_weight": 0,
+  "promoted": false,
+  "rolled_back": true,
+  "seconds": 20.0,
+  "canary_requests": 51,
+  "total_requests": 1209,
+  "blast_radius_pct": 4.22,
+  "reason": "canary error 0.391 significantly worse than stable 0.000 (\u0394 CI [0.260, 0.535] excludes 0)",
+  "run_dir": "results/archive/bad-error_20261031T185653Z"
+}

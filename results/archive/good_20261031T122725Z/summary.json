@@ -1,0 +1,15 @@
+{
+  "scenario": "good",
+  "expect": "promote",
+  "ok": true,
+  "decision_mode": "tier1",
+  "final_weight": 100,
+  "promoted": true,
+  "rolled_back": false,
+  "seconds": 134.7,
+  "canary_requests": 2413,
+  "total_requests": 6484,
+  "blast_radius_pct": 37.21,
+  "reason": "no stable baseline this window; canary error rate is acceptable",
+  "run_dir": "results/archive/good_20261031T122725Z"
+}

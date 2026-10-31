@@ -14,8 +14,10 @@ from __future__ import annotations
 
 import json
 import os
+import signal
+import sys
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from config import ControllerConfig, DecisionMode, from_env
@@ -52,7 +54,7 @@ def _log_line(
         Dictionary containing all decision context for logging
     """
     return {
-        "ts": datetime.fromtimestamp(now, tz=timezone.utc).isoformat(),
+        "ts": datetime.fromtimestamp(now, tz=UTC).isoformat(),
         "unix": now,
         "canary_weight": state.canary_weight,
         "stable_weight": state.stable_weight,
@@ -131,6 +133,10 @@ def run(cfg: ControllerConfig) -> None:
     if mode not in ("naive_threshold", "tier1", "tier2_sprt"):
         raise SystemExit(f"invalid DECISION_MODE={mode!r}")
 
+    # `docker stop` sends SIGTERM to PID 1, which Python ignores without a handler. Exit at once so
+    # the scenario runner's stop doesn't wait out Docker's 10s kill timeout every run.
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
+
     log_path = Path(cfg.decision_log_path)
     status_path = log_path.with_name("status.json")
     log_path.parent.mkdir(parents=True, exist_ok=True)
@@ -139,7 +145,6 @@ def run(cfg: ControllerConfig) -> None:
     writer = ProxyWriter(
         template_path=os.environ.get("TEMPLATE_PATH", "/app/nginx.conf.j2"),
         output_path=os.environ.get("NGINX_CONF_PATH", "/etc/nginx/conf.d/default.conf"),
-        proxy_container=os.environ.get("PROXY_CONTAINER", "perch-proxy"),
         debounce_seconds=cfg.proxy_reload_debounce_seconds,
     )
 

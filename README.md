@@ -18,20 +18,35 @@ PERCH runs two versions of your service (stable and canary) behind nginx with we
 ## Quick Start
 
 ```bash
-# Start the stack
-docker compose up -d --build
-
-# Run a good deployment (promotes to 100%)
-python scenarios/run.py good
+# Run a good deployment (promotes to 100%) — brings the stack up itself
+make demo-good        # or: python scenarios/run.py good
 
 # Run a bad deployment (rolls back at 5%)
-python scenarios/run.py bad-error
+make demo-bad         # or: python scenarios/run.py bad-error
 
-# View the rollout visualization
+# View the latest run's plot; every run is also archived under results/archive/
 open results/rollout.png
 ```
 
-**Note**: The nginx proxy automatically reloads its configuration when the controller adjusts traffic weights. This happens inside the proxy container, so no manual reload step is required.
+Each scenario run, with no manual steps:
+
+1. Stops any controller / load generator still running, sets the proxy to 100% stable, and moves
+   aside stray result files — so a previous run can never leak into this one.
+2. Deploys the scenario's canary (env vars + a recreated container).
+3. Starts the load generator, *then* the controller, so the first 5% stage bakes under real traffic.
+4. Waits for the controller to promote or roll back.
+5. Stops both and archives the run to `results/archive/<scenario>_<timestamp>/`, with a plot and a
+   `summary.json`.
+
+Scenarios are safe to run back to back (e.g. `make demo-bad` twice in a row).
+
+**How weights reach nginx**: the controller and the proxy share the `./proxy-conf` folder. The
+controller renders `proxy/nginx.conf.j2` into `proxy-conf/default.conf`; the proxy polls that file
+once a second and runs `nginx -t && nginx -s reload` when it changes. Writes are debounced
+(at most one per `PROXY_RELOAD_DEBOUNCE_SECONDS`) so reloads can't pile up and disturb latency.
+Every response carries an `X-Perch-Weights: <stable>/<canary>` header showing the weights nginx
+has actually loaded.
+
 **Components:**
 - **Stable/Canary Services**: FastAPI apps with configurable faults
 - **nginx**: Weighted routing between services (auto-reloads on config changes)
@@ -78,18 +93,21 @@ Key settings (via environment variables or `.env`):
 
 ## Understanding the Output
 
-**Decision Log** (`results/decision_log.jsonl`):
-- Complete history of every decision with evidence
-- Includes metrics from both services
-- Shows why each action was taken
+While a run is live, the controller and load generator write into `results/`. When it ends, the
+runner moves everything into `results/archive/<scenario>_<timestamp>/` (committed to git as
+evidence):
 
-**Status File** (`results/status.json`):
-- Current state for monitoring
-- Quick check of weight and terminal flags
+| File | Contents |
+|------|----------|
+| `decision_log.jsonl` | Every controller decision, one JSON object per line, with the evidence behind it |
+| `loadgen.jsonl` | Every request the load generator sent: path, status, latency, which version served it |
+| `status.json` | The controller's final state (weight, promoted / rolled back, last reason) |
+| `summary.json` | Outcome, decision mode, time to promote/rollback, and blast radius (requests the canary served) |
+| `rollout.png` | Three stacked charts: canary weight, error rate, p95 latency, with rollback/promote marked |
 
-**Rollout Plot** (`results/rollout.png`):
-- Three stacked charts: weight, error rate, latency
-- Rollback and promote events marked
+`results/rollout.png` is a copy of the latest run's plot. Re-plot any run with
+`make plots RUN=results/archive/<run>`. Logs from a controller started outside the runner
+(e.g. by `make up`) are moved to `results/archive/unscripted_*` and not committed.
 
 ## Troubleshooting
 
@@ -97,7 +115,8 @@ Key settings (via environment variables or `.env`):
 - Check: `docker compose logs controller`
 - Ensure services are healthy: `curl http://localhost:8091/health` (or your configured STABLE_PORT)
 - Verify Prometheus is scraping: `curl http://localhost:9095/api/v1/targets`
-- Check nginx is reloading: `docker compose logs proxy` should show reload events when config changes
+- Check nginx is reloading: `curl -sI http://localhost:8089/health | grep X-Perch-Weights` shows
+  the weights nginx has loaded; `docker compose logs proxy` shows reload events
 
 **Rollback happens too quickly?**
 - Increase `MIN_SAMPLES_PER_WINDOW` (default: 40)
@@ -117,8 +136,12 @@ Key settings (via environment variables or `.env`):
 ## Development
 
 ```bash
-# Run unit tests
-python -m pytest tests/test_decision.py tests/test_ramp.py tests/test_proxy_writer.py -v
+# Run unit tests (no Docker)
+make unit
+
+# Run end-to-end tests against a running stack (`make up` first; not while a scenario is running —
+# they rewrite the proxy's weights and check traffic shifts accordingly)
+make e2e
 
 # Format code
 python -m black .

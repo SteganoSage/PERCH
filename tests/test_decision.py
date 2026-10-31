@@ -37,9 +37,7 @@ def sample(service: str, n: int, errors: int, p95: float = 40.0) -> MetricSample
 
 def test_clearly_fine_canary_advances() -> None:
     """A healthy canary with identical metrics to stable should advance."""
-    decision = evaluate(
-        sample("canary", 200, 0), sample("stable", 200, 0), CFG, "tier1"
-    )
+    decision = evaluate(sample("canary", 200, 0), sample("stable", 200, 0), CFG, "tier1")
     assert decision.action == "advance"
 
 
@@ -48,9 +46,7 @@ def test_clearly_broken_error_rate_rolls_back() -> None:
 
     30% error rate (60/200) vs 0% is statistically significant.
     """
-    decision = evaluate(
-        sample("canary", 200, 60), sample("stable", 200, 0), CFG, "tier1"
-    )
+    decision = evaluate(sample("canary", 200, 60), sample("stable", 200, 0), CFG, "tier1")
     assert decision.action == "rollback"
     assert "error" in decision.reason.lower()
 
@@ -75,9 +71,7 @@ def test_too_few_samples_holds_even_if_ratio_looks_bad() -> None:
 
     Even 100% error rate on 10 samples is noise, not signal.
     """
-    decision = evaluate_tier1(
-        sample("canary", 10, 10), sample("stable", 200, 0), CFG
-    )
+    decision = evaluate_tier1(sample("canary", 10, 10), sample("stable", 200, 0), CFG)
     assert decision.action == "hold"
     assert "holding" in decision.reason.lower()
 
@@ -88,9 +82,7 @@ def test_borderline_error_rate_holds() -> None:
     12/200 = 6% vs 2/200 = 1%. Point estimate looks worse; Wilson CI still
     includes 0, so the honest answer is "not sure yet".
     """
-    decision = evaluate_tier1(
-        sample("canary", 200, 12), sample("stable", 200, 2), CFG
-    )
+    decision = evaluate_tier1(sample("canary", 200, 12), sample("stable", 200, 2), CFG)
     assert decision.action == "hold"
 
 
@@ -107,17 +99,19 @@ def test_naive_fires_on_noisy_sample_that_tier1_holds() -> None:
     assert tier1.action == "hold"
 
 
+def test_naive_holds_with_no_canary_traffic() -> None:
+    """Zero canary requests is no evidence either way; the baseline must not advance on it."""
+    decision = evaluate_naive_threshold(sample("canary", 0, 0), sample("stable", 200, 0), CFG)
+    assert decision.action == "hold"
+
+
 def test_dispatch_naive_mode() -> None:
     """Verify the evaluate function dispatches to the correct mode."""
-    decision = evaluate(
-        sample("canary", 200, 0), sample("stable", 200, 0), CFG, "naive_threshold"
-    )
+    decision = evaluate(sample("canary", 200, 0), sample("stable", 200, 0), CFG, "naive_threshold")
     assert decision.action == "advance"
 
 
 def test_sprt_rolls_back_on_loud_fault() -> None:
     """SPRT mode should detect clear faults and roll back."""
-    decision = evaluate(
-        sample("canary", 200, 60), sample("stable", 200, 0), CFG, "tier2_sprt"
-    )
+    decision = evaluate(sample("canary", 200, 60), sample("stable", 200, 0), CFG, "tier2_sprt")
     assert decision.action == "rollback"

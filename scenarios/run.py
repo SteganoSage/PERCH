@@ -3,9 +3,17 @@
 Works on Windows (PowerShell) and Unix. Requires Docker. Plots require
 matplotlib (see requirements-dev.txt).
 
-Scenario variables are passed via subprocess environment variables to Docker
-Compose. The nginx proxy automatically reloads when the controller adjusts
-traffic weights.
+Each run, in order (CLAUDE.md §5.6):
+
+1. Known state: stop any controller/load generator still running (a live
+   controller keeps rewriting status.json with its old state), set the proxy
+   to 100% stable, and move aside any stray live result files.
+2. Deploy the scenario's canary: env vars + a recreated container.
+3. Start the load generator, *then* the controller, so the first ramp stage
+   bakes under real traffic instead of an idle stack.
+4. Wait for the controller to promote or roll back.
+5. Stop both, archive the run to results/archive/<scenario>_<stamp>/, plot
+   it, and print a one-line summary.
 """
 
 from __future__ import annotations
@@ -17,12 +25,20 @@ import shutil
 import subprocess
 import sys
 import time
-from datetime import datetime, timezone
+import urllib.error
+import urllib.request
+from datetime import UTC, datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 RESULTS = ROOT / "results"
+ARCHIVE = RESULTS / "archive"
+PROXY_CONF = ROOT / "proxy-conf" / "default.conf"
+BOOTSTRAP_CONF = ROOT / "proxy" / "bootstrap.conf"
 COMPOSE = ["docker", "compose", "-f", str(ROOT / "docker-compose.yml")]
+COMPOSE_WITH_LOAD = [*COMPOSE, "--profile", "load"]
+# Files the controller and load generator write into results/ while a run is live.
+LIVE_FILES = ("decision_log.jsonl", "status.json", "loadgen.jsonl")
 
 SCENARIOS = {
     "good": {
@@ -91,17 +107,25 @@ def run(cmd: list[str], env: dict | None = None, check: bool = True) -> subproce
     return subprocess.run(cmd, cwd=ROOT, env=merged, check=check)
 
 
-def rotate_logs(name: str) -> Path:
-    RESULTS.mkdir(parents=True, exist_ok=True)
-    stamp = datetime.now(tz=timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    dest = RESULTS / "archive" / f"{name}_{stamp}"
-    dest.mkdir(parents=True, exist_ok=True)
-    for filename in ("decision_log.jsonl", "status.json", "loadgen.jsonl"):
-        src = RESULTS / filename
-        if src.exists():
-            shutil.move(str(src), str(dest / filename))
-    (RESULTS / "loadgen.jsonl").write_text("", encoding="utf-8")
-    return dest
+def setting(name: str, default: str) -> str:
+    """A setting as docker compose resolves it: process env, then .env, then the default.
+
+    Compose reads .env by itself; reading it here too keeps the ports the runner
+    polls in step with the ports the stack actually publishes.
+    """
+    if os.environ.get(name):
+        return os.environ[name]
+    env_file = ROOT / ".env"
+    if env_file.exists():
+        for line in env_file.read_text(encoding="utf-8").splitlines():
+            key, sep, value = line.partition("=")
+            if sep and key.strip() == name and value.strip():
+                return value.strip()
+    return default
+
+
+def host_url(port_var: str, default_port: str, path: str) -> str:
+    return f"http://127.0.0.1:{int(setting(port_var, default_port))}{path}"
 
 
 def wait_http_ok(url: str, timeout: float = 60.0) -> None:
@@ -117,9 +141,6 @@ def wait_http_ok(url: str, timeout: float = 60.0) -> None:
     Raises:
         SystemExit: If the endpoint doesn't respond successfully within the timeout.
     """
-    import urllib.error
-    import urllib.request
-
     deadline = time.time() + timeout
     last = None
     while time.time() < deadline:
@@ -131,6 +152,75 @@ def wait_http_ok(url: str, timeout: float = 60.0) -> None:
             last = exc
         time.sleep(1)
     raise SystemExit(f"timed out waiting for {url}: {last}")
+
+
+def wait_proxy_weights(want: str, timeout: float = 20.0) -> None:
+    """Block until nginx is serving with the given "stable/canary" weights.
+
+    Reads the X-Perch-Weights header every rendered config stamps on its
+    responses, so this sees what nginx has loaded, not just what is on disk.
+    """
+    url = host_url("PROXY_PORT", "8089", "/health")
+    deadline = time.time() + timeout
+    seen = None
+    while time.time() < deadline:
+        try:
+            with urllib.request.urlopen(url, timeout=2) as response:
+                seen = response.headers.get("X-Perch-Weights")
+        except (urllib.error.URLError, TimeoutError, ConnectionError) as exc:
+            seen = repr(exc)
+        if seen == want:
+            return
+        time.sleep(0.5)
+    raise SystemExit(f"proxy never loaded weights {want}; last saw {seen}")
+
+
+def reset_proxy() -> None:
+    """Send all traffic to stable before the canary is touched.
+
+    Otherwise the load generator would start on whatever weights the previous
+    run left behind: 100% canary after a promotion.
+    """
+    shutil.copyfile(BOOTSTRAP_CONF, PROXY_CONF)
+    wait_proxy_weights("100/0")
+
+
+def stop_rollout() -> None:
+    """Stop the load generator and the controller.
+
+    Stopping the controller is what makes back-to-back runs safe: a running
+    one rewrites status.json and the decision log with its own state every
+    poll, which a following run would otherwise read as its own result.
+    """
+    run([*COMPOSE_WITH_LOAD, "stop", "loadgen", "controller"], check=False)
+
+
+def stash_stray_results(stamp: str) -> None:
+    """Move live result files that predate this run out of the way.
+
+    Every scripted run archives its own files when it ends, so anything still
+    here came from outside the runner (e.g. `make up` starts a controller).
+    Kept, but under unscripted_* which is gitignored.
+    """
+    present = [RESULTS / name for name in LIVE_FILES if (RESULTS / name).exists()]
+    if not present:
+        return
+    dest = ARCHIVE / f"unscripted_{stamp}"
+    dest.mkdir(parents=True, exist_ok=True)
+    for src in present:
+        shutil.move(str(src), str(dest / src.name))
+    print(f"moved stray results to {dest}", flush=True)
+
+
+def archive_run(name: str, stamp: str) -> Path:
+    """Move this run's live files into results/archive/<scenario>_<stamp>/."""
+    dest = ARCHIVE / f"{name}_{stamp}"
+    dest.mkdir(parents=True, exist_ok=True)
+    for filename in LIVE_FILES:
+        src = RESULTS / filename
+        if src.exists():
+            shutil.move(str(src), str(dest / filename))
+    return dest
 
 
 def read_status() -> dict:
@@ -149,83 +239,80 @@ def read_status() -> dict:
         return {}
 
 
-def wait_terminal(expect: str, timeout: float) -> dict:
-    """Wait for the rollout to reach a terminal state (promoted or rolled_back).
+def wait_terminal(expect: str, timeout: float) -> tuple[bool, dict]:
+    """Wait for the rollout to reach a terminal state (promoted or rolled back).
 
-    Polls the status.json file every 2 seconds until the expected state is reached.
-
-    Args:
-        expect: The expected terminal state ("promote" or "rollback").
-        timeout: Maximum time to wait in seconds.
+    Returns as soon as either terminal state appears; promote and rollback
+    are both final, so waiting on past the wrong one would only burn the
+    timeout.
 
     Returns:
-        The final status dictionary.
-
-    Raises:
-        SystemExit: If the terminal state is not reached within the timeout.
+        (whether the expected state was reached, the last status read).
     """
     deadline = time.time() + timeout
-    last = {}
+    status: dict = {}
     while time.time() < deadline:
-        last = read_status()
-        if expect == "promote" and last.get("promoted"):
-            return last
-        if expect == "rollback" and last.get("rolled_back"):
-            return last
+        status = read_status()
+        if status.get("promoted") or status.get("rolled_back"):
+            key = "promoted" if expect == "promote" else "rolled_back"
+            return bool(status.get(key)), status
         time.sleep(2)
-    raise SystemExit(
-        f"timed out after {timeout}s waiting for {expect}; last status={last}"
-    )
+    print(f"timed out after {timeout}s waiting for {expect}; last status={status}", flush=True)
+    return False, status
 
 
-def blast_radius() -> tuple[int, int]:
-    """Calculate the blast radius of the canary deployment.
-
-    Reads the load generator logs to count how many total requests were made
-    and how many hit the canary service.
-
-    Returns:
-        A tuple of (canary_requests, total_requests).
-    """
-    path = RESULTS / "loadgen.jsonl"
-    canary = total = 0
+def read_jsonl(path: Path) -> list[dict]:
     if not path.exists():
-        return 0, 0
+        return []
+    rows = []
     for line in path.read_text(encoding="utf-8").splitlines():
         if not line.strip():
             continue
-        total += 1
         try:
-            row = json.loads(line)
+            rows.append(json.loads(line))
         except json.JSONDecodeError:
             continue
-        if row.get("service") == "canary":
-            canary += 1
-    return canary, total
+    return rows
 
 
-def plot(name: str) -> None:
-    """Generate a rollout plot for the scenario.
+def blast_radius(run_dir: Path) -> tuple[int, int]:
+    """(requests the canary served, total requests) from the load generator's log."""
+    rows = read_jsonl(run_dir / "loadgen.jsonl")
+    canary = sum(1 for row in rows if row.get("service") == "canary")
+    return canary, len(rows)
 
-    Invokes the plot_results.py analysis script to create results/rollout.png.
 
-    Args:
-        name: Name of the scenario (used as the plot title).
-    """
+def time_to_terminal(decisions: list[dict]) -> float | None:
+    """Seconds from the controller's first decision to its rollback/promote."""
+    for row in decisions:
+        if row.get("action") in ("rollback", "promote"):
+            return round(row["unix"] - decisions[0]["unix"], 1)
+    return None
+
+
+def plot(run_dir: Path, title: str) -> None:
+    """Plot the run into its archive folder and copy it to results/rollout.png (latest run)."""
     script = ROOT / "analysis" / "plot_results.py"
-    cmd = [sys.executable, str(script), "--log", str(RESULTS / "decision_log.jsonl"), "--out-dir", str(RESULTS), "--title", name]
+    cmd = [
+        sys.executable,
+        str(script),
+        "--log",
+        str(run_dir / "decision_log.jsonl"),
+        "--out-dir",
+        str(run_dir),
+        "--title",
+        title,
+    ]
     try:
         run(cmd)
     except (subprocess.CalledProcessError, FileNotFoundError) as exc:
         print(f"plot skipped: {exc}", flush=True)
+        return
+    shutil.copyfile(run_dir / "rollout.png", RESULTS / "rollout.png")
 
 
 def scenario_run(name: str, extra_env: dict | None = None) -> dict:
-    """Run a full end-to-end scenario test.
-
-    Sets up the environment, brings up the Docker Compose stack, waits for
-    the controller to reach a terminal decision, tears down the load generator,
-    calculates metrics, generates a plot, and outputs a summary.
+    """Run one scenario end to end and archive it. See the module docstring for the steps.
 
     Args:
         name: The name of the scenario to run.
@@ -238,52 +325,56 @@ def scenario_run(name: str, extra_env: dict | None = None) -> dict:
     env = {k: v for k, v in spec.items() if k not in ("expect", "timeout")}
     if extra_env:
         env.update(extra_env)
-
+    stamp = datetime.now(tz=UTC).strftime("%Y%m%dT%H%M%SZ")
     print(f"=== scenario {name} expect={spec['expect']} ===", flush=True)
-    rotate_logs(name)
 
-    # Pass scenario vars via subprocess env to Docker Compose
-    started = time.time()
+    # 1. Known state. Build everything up front so no image build lands between
+    # starting the load generator and starting the controller.
+    stop_rollout()
+    stash_stray_results(stamp)
+    run([*COMPOSE_WITH_LOAD, "build"], env=env)
+    run([*COMPOSE, "up", "-d", "stable", "canary", "proxy", "prometheus"], env=env)
+    wait_http_ok(host_url("STABLE_PORT", "8091", "/health"))
+    wait_http_ok(host_url("CANARY_PORT", "8092", "/health"))
+    reset_proxy()
+
+    # 2. Deploy the scenario's canary. A fresh process also restarts the
+    # slow-onset fault clock.
+    run([*COMPOSE, "up", "-d", "--force-recreate", "canary"], env=env)
+    wait_http_ok(host_url("CANARY_PORT", "8092", "/health"))
+
+    # 3-5. Traffic first, then the controller. Its first config write also makes
+    # nginx reload and re-resolve the recreated canary's address.
+    reached, status = False, {}
     try:
-        run([*COMPOSE, "up", "-d", "--build", "stable", "canary", "proxy", "prometheus"], env=env)
-        stable_port = int(env.get("STABLE_PORT", os.environ.get("STABLE_PORT", "8091")))
-        canary_port = int(env.get("CANARY_PORT", os.environ.get("CANARY_PORT", "8092")))
-        wait_http_ok(f"http://127.0.0.1:{stable_port}/health")
-        wait_http_ok(f"http://127.0.0.1:{canary_port}/health")
-
-        run([*COMPOSE, "up", "-d", "--build", "--force-recreate", "canary"], env=env)
-        wait_http_ok(f"http://127.0.0.1:{canary_port}/health")
-
-        run([*COMPOSE, "up", "-d", "--build", "--force-recreate", "controller"], env=env)
-
-        run([*COMPOSE, "--profile", "load", "up", "-d", "--build", "--force-recreate", "loadgen"], env=env)
-
-        status = wait_terminal(spec["expect"], spec["timeout"])
-        elapsed = time.time() - started
+        run([*COMPOSE_WITH_LOAD, "up", "-d", "--force-recreate", "loadgen"], env=env)
+        run([*COMPOSE, "up", "-d", "--force-recreate", "controller"], env=env)
+        reached, status = wait_terminal(spec["expect"], spec["timeout"])
     finally:
-        pass
+        stop_rollout()
+        run_dir = archive_run(name, stamp)
 
-    run([*COMPOSE, "stop", "loadgen"], check=False)
-    canary_n, total_n = blast_radius()
-    plot(name)
-
+    decisions = read_jsonl(run_dir / "decision_log.jsonl")
+    canary_n, total_n = blast_radius(run_dir)
     summary = {
         "scenario": name,
         "expect": spec["expect"],
+        "ok": reached,
+        "decision_mode": decisions[0]["evidence"].get("mode") if decisions else None,
         "final_weight": status.get("canary_weight"),
         "promoted": status.get("promoted"),
         "rolled_back": status.get("rolled_back"),
-        "seconds": round(elapsed, 1),
+        "seconds": time_to_terminal(decisions),
         "canary_requests": canary_n,
         "total_requests": total_n,
         "blast_radius_pct": round(100.0 * canary_n / total_n, 2) if total_n else 0.0,
         "reason": status.get("reason"),
+        "run_dir": run_dir.relative_to(ROOT).as_posix(),
     }
+    (run_dir / "summary.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
+    plot(run_dir, name)
     print("SUMMARY " + json.dumps(summary), flush=True)
-    ok = (spec["expect"] == "promote" and status.get("promoted")) or (
-        spec["expect"] == "rollback" and status.get("rolled_back")
-    )
-    if not ok:
+    if not reached:
         raise SystemExit(f"scenario {name} did not reach expected terminal state")
     return summary
 

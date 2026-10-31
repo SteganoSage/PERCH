@@ -59,7 +59,7 @@ def plot_run(rows: list[dict], out_dir: Path, title: str) -> Path:
     axes[0].step(xs, weights, where="post", color="#1f77b4")
     axes[0].set_ylabel("canary weight %")
     axes[0].set_ylim(-5, 105)
-    for row, x in zip(rows, xs):
+    for row, x in zip(rows, xs, strict=True):
         if row["action"] == "rollback":
             axes[0].axvline(x, color="#d62728", linestyle="--", label="rollback")
         elif row["action"] == "promote":
@@ -67,7 +67,7 @@ def plot_run(rows: list[dict], out_dir: Path, title: str) -> Path:
         elif row["action"] == "advance":
             axes[0].axvline(x, color="#7f7f7f", linestyle=":", alpha=0.5)
     handles, labels = axes[0].get_legend_handles_labels()
-    by_label = dict(zip(labels, handles))
+    by_label = dict(zip(labels, handles, strict=True))
     if by_label:
         axes[0].legend(by_label.values(), by_label.keys(), loc="best")
 

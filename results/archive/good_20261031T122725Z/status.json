@@ -1,0 +1,1 @@
+{"canary_weight": 100, "stable_weight": 0, "rolled_back": false, "promoted": true, "last_action": "promote", "reason": "no stable baseline this window; canary error rate is acceptable"}

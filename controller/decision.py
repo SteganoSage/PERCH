@@ -66,6 +66,10 @@ def evaluate_naive_threshold(
     naive_latency_multiplier. Otherwise advance. This is the baseline the
     statistical detector is compared against: it will fire on a handful of
     unlucky requests that tier1 correctly holds on.
+
+    Zero canary requests still holds: that is no observation at all, and
+    "advancing" on it would ramp the baseline through stages on no data and
+    inflate its blast radius for reasons unrelated to the threshold.
     """
     error_delta = canary.error_rate - stable.error_rate
     evidence = {
@@ -78,6 +82,9 @@ def evaluate_naive_threshold(
         "canary_n": canary.request_count,
         "stable_n": stable.request_count,
     }
+    if canary.request_count == 0:
+        evidence["signal"] = "no_canary_traffic"
+        return Decision("hold", "naive: no canary requests in window; holding", evidence)
     if error_delta > cfg.naive_error_rate_delta:
         return Decision(
             "rollback",
@@ -197,9 +204,7 @@ def evaluate_tier1(canary: MetricSample, stable: MetricSample, cfg: DecisionConf
     )
 
 
-def _absolute_canary_check(
-    canary: MetricSample, cfg: DecisionConfig, evidence: dict
-) -> Decision:
+def _absolute_canary_check(canary: MetricSample, cfg: DecisionConfig, evidence: dict) -> Decision:
     """Used when stable has too few samples (typically the 100% stage)."""
     evidence["signal"] = "absolute_canary"
     if canary.error_rate > cfg.naive_error_rate_delta:

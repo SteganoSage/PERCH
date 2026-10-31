@@ -3,6 +3,8 @@
 
 COMPOSE := docker compose
 PYTHON ?= python
+# Run folder for `make plots`; defaults to the live files of an unscripted session.
+RUN ?= results
 
 help:
 	@echo "  up          Build and start the stack (no load generator)"
@@ -10,9 +12,11 @@ help:
 	@echo "  logs        Tail controller logs"
 	@echo "  demo-good   Good canary: ramps to 100% unattended"
 	@echo "  demo-bad    Broken canary: rolls back to 0% unattended"
-	@echo "  unit        Decision/ramp tests (no Docker)"
-	@echo "  e2e         HTTP tests against a running stack"
+	@echo "  unit        Decision/ramp/proxy-writer tests (no Docker)"
+	@echo "  e2e         HTTP tests against a running stack (not during a scenario)"
 	@echo "  test        unit + e2e"
+	@echo "  plots       Re-plot a run: make plots RUN=results/archive/<run>"
+	@echo "  clean       Delete live scratch files in results/ (keeps results/archive/)"
 
 up:
 	$(COMPOSE) up -d --build
@@ -44,7 +48,7 @@ baseline:
 	$(PYTHON) analysis/compare_baseline_vs_detector.py
 
 plots:
-	$(PYTHON) analysis/plot_results.py
+	$(PYTHON) analysis/plot_results.py --log $(RUN)/decision_log.jsonl --out-dir $(RUN)
 
 fmt:
 	$(PYTHON) -m black .
@@ -54,4 +58,4 @@ lint:
 
 clean:
 	$(PYTHON) -c "import pathlib; p=pathlib.Path('results'); \
-[f.unlink() for f in p.rglob('*') if f.is_file() and f.name!='.gitkeep']"
+[f.unlink() for f in p.glob('*') if f.is_file() and f.name!='.gitkeep']"

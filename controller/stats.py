@@ -48,9 +48,7 @@ def difference_interval(
     return (a_lo - b_hi, a_hi - b_lo)
 
 
-def sprt_log_likelihood_ratio(
-    errors: int, n: int, p0: float, p1: float
-) -> float:
+def sprt_log_likelihood_ratio(errors: int, n: int, p0: float, p1: float) -> float:
     """Batch log-likelihood ratio for a binomial: H0: p=p0 vs H1: p=p1."""
     if n <= 0 or p0 <= 0 or p1 <= 0 or p0 >= 1 or p1 >= 1:
         return 0.0

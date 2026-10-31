@@ -27,6 +27,9 @@ server {
         # Surface which backend served the request so blast radius can be
         # counted from the load generator as well as from Prometheus.
         add_header X-Upstream $upstream_addr always;
+        # The weights nginx has actually loaded (not just what is on disk), so the scenario
+        # runner and e2e tests can tell when a rewritten config has taken effect.
+        add_header X-Perch-Weights "{{ stable_weight }}/{{ canary_weight }}" always;
         proxy_connect_timeout 2s;
         proxy_read_timeout 10s;
     }

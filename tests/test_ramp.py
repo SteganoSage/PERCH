@@ -10,7 +10,6 @@ from config import RampConfig
 from decision import Decision
 from ramp import apply_decision, initial_state
 
-
 CFG = RampConfig(stages=(5, 10, 25, 50, 100), bake_seconds=25)
 
 
