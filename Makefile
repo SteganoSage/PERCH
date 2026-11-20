@@ -1,5 +1,5 @@
 # PERCH — developer entry points
-.PHONY: help up down logs demo-good demo-bad demo-all test unit e2e fmt lint plots baseline campaign simulate clean
+.PHONY: help up down logs demo-good demo-bad demo-all test unit e2e eval fmt lint plots baseline campaign simulate experiments figures clean
 
 COMPOSE := docker compose
 PYTHON ?= python
@@ -14,8 +14,11 @@ help:
 	@echo "  demo-bad    Broken canary: rolls back to 0% unattended"
 	@echo "  unit        Decision/ramp/proxy-writer tests (no Docker)"
 	@echo "  e2e         HTTP tests against a running stack (not during a scenario)"
+	@echo "  eval        Evaluation tests: the detectors' claims, checked by simulation (~30s)"
 	@echo "  test        unit + e2e"
 	@echo "  simulate    1000 simulated rollouts per scenario and mode (no Docker, ~40s)"
+	@echo "  experiments Simulation experiments E1-E4 -> results/experiments/simulation (~1.5 min)"
+	@echo "  figures     Figures -> results/experiments/figures (CAMPAIGN=<dir> adds live ones)"
 	@echo "  baseline    Naive vs statistical, good + bad canary, 5 live runs each (~1 hour)"
 	@echo "  campaign    Every scenario x every mode, 5 live runs each (~2 hours)"
 	@echo "  plots       Re-plot a run: make plots RUN=results/archive/<run>"
@@ -47,6 +50,9 @@ unit:
 e2e:
 	$(PYTHON) -m pytest tests/test_e2e.py -v
 
+eval:
+	$(PYTHON) -m pytest tests/test_evaluation.py -v
+
 simulate:
 	$(PYTHON) analysis/simulate_rollouts.py --runs 1000
 
@@ -55,6 +61,12 @@ baseline:
 
 campaign:
 	$(PYTHON) analysis/run_campaign.py --repeats 5
+
+experiments:
+	$(PYTHON) analysis/experiments.py
+
+figures:
+	$(PYTHON) analysis/plot_experiments.py $(if $(CAMPAIGN),--campaign $(CAMPAIGN))
 
 plots:
 	$(PYTHON) analysis/plot_results.py --log $(RUN)/decision_log.jsonl --out-dir $(RUN)

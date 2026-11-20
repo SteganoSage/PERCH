@@ -153,6 +153,23 @@ each mode wrongly rolls back a good canary). A full campaign already contains th
 `make plots RUN=results/archive/<run>`. Logs from a controller started outside the runner
 (e.g. by `make up`) are moved to `results/archive/unscripted_*` and not committed.
 
+## Experiments and Evaluation
+
+Findings, tables and figures: [`results/experiments/README.md`](results/experiments/README.md).
+
+| Step | Command | Output |
+|------|---------|--------|
+| Simulation experiments (no Docker, ~1.5 min) | `make experiments` | `results/experiments/simulation/`: E1 every scenario × mode, E2 background noise, E3 fault size, E4 bake time; 1,000 rollouts per cell, CSV + `summary.md` |
+| Evaluation tests (~30s) | `make eval` | The detectors' claims as deterministic tests: tier2 stays within its 5% false-rollback budget at 0–5% noise, every mode catches every live fault, tier2 reaches fewer users than tier1 on loud faults, tier1 stalls below its sample floor, … |
+| Pre-registration | `predictions/prediction_*.md` | Predicted live results per scenario × mode and eight falsifiable claims, committed before the first live chaos run |
+| Live campaign (~2.5 hours) | `make campaign` | `results/campaigns/live_*/`: 75 runs, `table.md` (mean ± sd, variance, range) |
+| Score the predictions | `python analysis/evaluate_predictions.py <campaign>` | `evaluation.md`: each claim hit or miss, each cell's live mean vs its predicted range |
+| Naive vs statistical | `python analysis/compare_baseline_vs_detector.py --summarize <campaign>` | `comparison.md`: both directions, live next to simulated |
+| Figures | `make figures CAMPAIGN=<campaign>` | `results/experiments/figures/*.png` |
+
+Every simulated number is reproducible: each cell's seed is derived from a fixed base seed, so
+rerunning gives identical results.
+
 ## Troubleshooting
 
 **Controller not making decisions?**

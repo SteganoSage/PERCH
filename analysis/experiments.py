@@ -11,8 +11,8 @@ rerun reproduces every number exactly, however the cells are spread over process
 
 Output, in results/experiments/simulation/:
 - <experiment>.csv: one row per cell (parameters, outcome counts and rates with 95% Wilson
-  intervals, and mean / sd / median / p90 of time to outcome, canary requests and canary errors
-  served, over the runs that reached the expected outcome);
+  intervals, and mean / sd / p10 / median / p90 of time to outcome, canary requests and canary
+  errors served, over the runs that reached the expected outcome);
 - summary.md: the same as compact tables; meta.json: what produced them.
 Figures come from analysis/plot_experiments.py.
 
@@ -103,11 +103,12 @@ EXPERIMENTS = {"e1": e1_modes, "e2": e2_noise, "e3": e3_fault_size, "e4": e4_bak
 
 def _summary(values: list[float]) -> dict[str, float | None]:
     if not values:
-        return {"mean": None, "sd": None, "p50": None, "p90": None}
+        return {"mean": None, "sd": None, "p10": None, "p50": None, "p90": None}
     arr = np.asarray(values, dtype=float)
     return {
         "mean": float(arr.mean()),
         "sd": float(arr.std(ddof=1)) if len(arr) > 1 else 0.0,
+        "p10": float(np.percentile(arr, 10)),
         "p50": float(np.percentile(arr, 50)),
         "p90": float(np.percentile(arr, 90)),
     }
