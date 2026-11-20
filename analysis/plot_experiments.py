@@ -420,61 +420,61 @@ def fig_live_vs_predicted(campaign: Path) -> Path:
             ax.grid(axis="y", visible=False)
             ax.tick_params(axis="y", labelcolor=INK_2, length=0)
             ax.set_xlim(left=0)
-            if row == 0:
-                ax.set_title(("Canary requests before rollback", "Seconds to rollback")[col])
-            if col == 0:
-                ax.annotate(
-                    name,
-                    (0, 1.02),
-                    xycoords="axes fraction",
-                    color=INK,
-                    fontsize=10,
-                    fontweight="semibold",
-                )
+            metric_title = ("canary requests before rollback", "seconds to rollback")[col]
+            ax.set_title(f"{name} · {metric_title}", fontsize=10)
     legend(fig)
     caption(
         fig,
         "Dots: live runs that rolled back (5 per cell, jittered vertically). Shaded bar: "
-        "pre-registered predicted range. Black tick: simulator mean (1,000 runs).",
+        "pre-registered predicted range. Black tick: simulator mean (1,000 runs). Live seconds "
+        "are wall-clock: the Docker VM's clock is stepped back ~2.3s at a time, so some fall "
+        "below a poll.",
     )
     fig.tight_layout(rect=(0, 0.04, 1, 0.95))
     return save(fig, "live_vs_predicted.png")
 
 
 def fig_live_timelines(campaign: Path) -> Path:
-    """Canary weight over time for each scenario's first repeat, one line per mode."""
+    """Canary weight over time, first repeat of each scenario: one row per mode, so modes that
+    share the 5% stage until they roll back do not hide each other."""
     runs = [r for r in read_runs(campaign) if r["repeat"] == 1 and r.get("run_dir")]
     names = ("good", *BAD)
-    fig, axes = plt.subplots(1, len(names), figsize=(15, 3.6), sharey=True)
-    for ax, name in zip(axes, names, strict=True):
-        for mode in MODES:
+    fig, axes = plt.subplots(
+        len(MODES), len(names), figsize=(15, 6.4), sharey=True, sharex="col", squeeze=False
+    )
+    for col, name in enumerate(names):
+        for row, mode in enumerate(MODES):
+            ax = axes[row][col]
             match = [r for r in runs if r["scenario"] == name and r["mode"] == mode]
-            if not match:
-                continue
-            log = ROOT / match[0]["run_dir"] / "decision_log.jsonl"
-            decisions = [
-                json.loads(line) for line in log.read_text(encoding="utf-8").splitlines() if line
-            ]
-            t0 = decisions[0]["unix"]
-            xs = [d["unix"] - t0 for d in decisions]
-            ax.step(
-                xs,
-                [d["canary_weight"] for d in decisions],
-                where="post",
-                color=COLOR[mode],
-                zorder=3,
-            )
-        ax.set_title(name)
-        ax.set_xlabel("seconds")
-        ax.set_ylim(-4, 104)
-    axes[0].yaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:g}%"))
-    axes[0].set_ylabel("canary traffic")
+            if match:
+                log = ROOT / match[0]["run_dir"] / "decision_log.jsonl"
+                lines = log.read_text(encoding="utf-8").splitlines()
+                decisions = [json.loads(line) for line in lines if line]
+                t0 = decisions[0]["unix"]
+                xs = [d["unix"] - t0 for d in decisions]
+                ax.step(
+                    xs,
+                    [d["canary_weight"] for d in decisions],
+                    where="post",
+                    color=COLOR[mode],
+                    zorder=3,
+                )
+            ax.set_ylim(-4, 104)
+            if row == 0:
+                ax.set_title(name)
+            if row == len(MODES) - 1:
+                ax.set_xlabel("seconds")
+            if col == 0:
+                ax.set_ylabel(LABEL[mode].split(" · ")[0], color=INK_2)
+                ax.yaxis.set_major_formatter(
+                    matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:g}%")
+                )
     legend(fig)
     caption(
         fig,
-        "Live, first repeat of each scenario: canary weight decided by the controller over time.",
+        "Live, first repeat of each scenario: the canary's traffic share as the controller set it.",
     )
-    fig.tight_layout(rect=(0, 0.06, 1, 0.9))
+    fig.tight_layout(rect=(0, 0.04, 1, 0.93))
     return save(fig, "live_timelines.png")
 
 

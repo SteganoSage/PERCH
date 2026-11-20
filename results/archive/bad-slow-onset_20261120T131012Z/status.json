@@ -1,0 +1,1 @@
+{"canary_weight": 0, "stable_weight": 100, "rolled_back": true, "promoted": false, "last_action": "rollback", "reason": "naive: canary error 0.081 exceeds stable 0.007 by 0.074 (threshold 0.05)"}

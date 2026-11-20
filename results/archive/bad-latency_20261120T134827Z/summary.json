@@ -1,0 +1,16 @@
+{
+  "scenario": "bad-latency",
+  "expect": "rollback",
+  "ok": true,
+  "decision_mode": "tier2_sprt",
+  "final_weight": 0,
+  "promoted": false,
+  "rolled_back": true,
+  "seconds": 5.0,
+  "canary_requests": 12,
+  "canary_errors": 1,
+  "total_requests": 777,
+  "blast_radius_pct": 1.54,
+  "reason": "latency: 11/11 canary requests slower than 150ms fits H1 (rate 0.052) over H0 (0.002); LLR 34.80 \u2265 5.19",
+  "run_dir": "results/archive/bad-latency_20261120T134827Z"
+}

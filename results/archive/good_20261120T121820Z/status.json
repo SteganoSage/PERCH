@@ -1,0 +1,1 @@
+{"canary_weight": 100, "stable_weight": 0, "rolled_back": false, "promoted": true, "last_action": "promote", "reason": "error_rate: 2/171 canary requests errors fits H0 (rate 0.011); LLR -5.30 \u2264 -2.30; latency: 0/171 canary requests slower than 150ms fits H0 (rate 0.002); LLR -8.78 \u2264 -2.30"}

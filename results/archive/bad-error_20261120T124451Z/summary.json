@@ -1,0 +1,16 @@
+{
+  "scenario": "bad-error",
+  "expect": "rollback",
+  "ok": true,
+  "decision_mode": "naive_threshold",
+  "final_weight": 0,
+  "promoted": false,
+  "rolled_back": true,
+  "seconds": 4.3,
+  "canary_requests": 13,
+  "canary_errors": 3,
+  "total_requests": 744,
+  "blast_radius_pct": 1.75,
+  "reason": "naive: canary error 0.273 exceeds stable 0.008 by 0.264 (threshold 0.05)",
+  "run_dir": "results/archive/bad-error_20261120T124451Z"
+}

@@ -1,0 +1,16 @@
+{
+  "scenario": "bad-slow-onset",
+  "expect": "rollback",
+  "ok": true,
+  "decision_mode": "tier2_sprt",
+  "final_weight": 0,
+  "promoted": false,
+  "rolled_back": true,
+  "seconds": 37.7,
+  "canary_requests": 101,
+  "canary_errors": 6,
+  "total_requests": 2532,
+  "blast_radius_pct": 3.99,
+  "reason": "error_rate: 6/96 canary requests errors fits H1 (rate 0.060) over H0 (0.010); LLR 6.12 \u2265 5.19",
+  "run_dir": "results/archive/bad-slow-onset_20261120T133148Z"
+}

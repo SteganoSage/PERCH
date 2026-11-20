@@ -1,0 +1,16 @@
+{
+  "scenario": "bad-error",
+  "expect": "rollback",
+  "ok": true,
+  "decision_mode": "tier2_sprt",
+  "final_weight": 0,
+  "promoted": false,
+  "rolled_back": true,
+  "seconds": 12.7,
+  "canary_requests": 38,
+  "canary_errors": 8,
+  "total_requests": 1278,
+  "blast_radius_pct": 2.97,
+  "reason": "error_rate: 5/26 canary requests errors fits H1 (rate 0.069) over H0 (0.019); LLR 5.27 \u2265 5.19",
+  "run_dir": "results/archive/bad-error_20261120T134547Z"
+}

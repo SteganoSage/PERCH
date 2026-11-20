@@ -1,0 +1,515 @@
+=== scenario good expect=promote ===
++ docker compose -f /mnt/f/Mini-Projects/CloudComputing/PERCH/docker-compose.yml --profile load stop loadgen controller
+ Container perch-loadgen-1 Stopping 
+ Container perch-controller Stopping 
+ Container perch-loadgen-1 Stopped 
+ Container perch-controller Stopped 
++ docker compose -f /mnt/f/Mini-Projects/CloudComputing/PERCH/docker-compose.yml --profile load build
+ Image perch-loadgen Building 
+ Image perch-stable Building 
+ Image perch-canary Building 
+ Image perch-proxy Building 
+ Image perch-controller Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 2.42kB done
+#1 DONE 0.0s
+
+#2 [canary internal] load build definition from Dockerfile
+#2 transferring dockerfile: 485B 0.1s done
+#2 DONE 0.1s
+
+#3 [loadgen internal] load build definition from Dockerfile
+#3 transferring dockerfile: 440B 0.1s done
+#3 DONE 0.1s
+
+#4 [stable internal] load build definition from Dockerfile
+#4 transferring dockerfile: 485B 0.1s done
+#4 DONE 0.1s
+
+#5 [proxy internal] load build definition from Dockerfile
+#5 transferring dockerfile: 547B 0.1s done
+#5 DONE 0.1s
+
+#6 [controller internal] load build definition from Dockerfile
+#6 transferring dockerfile: 495B 0.1s done
+#6 DONE 0.2s
+
+#7 [controller internal] load metadata for docker.io/library/python:3.11-slim
+#7 ...
+
+#8 [proxy internal] load metadata for docker.io/library/nginx:1.27-alpine
+#8 DONE 3.0s
+
+#9 [proxy internal] load .dockerignore
+#9 transferring context: 2B 0.0s done
+#9 DONE 0.0s
+
+#10 [proxy internal] load build context
+#10 DONE 0.0s
+
+#11 [proxy 1/5] FROM docker.io/library/nginx:1.27-alpine@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10
+#11 resolve docker.io/library/nginx:1.27-alpine@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10 0.0s done
+#11 DONE 0.1s
+
+#7 [controller internal] load metadata for docker.io/library/python:3.11-slim
+#7 ...
+
+#10 [proxy internal] load build context
+#10 transferring context: 104B 0.0s done
+#10 DONE 0.0s
+
+#12 [proxy 2/5] COPY bootstrap.conf /etc/nginx/bootstrap.conf
+#12 CACHED
+
+#13 [proxy 3/5] COPY nginx.conf.j2 /etc/nginx/nginx.conf.j2
+#13 CACHED
+
+#14 [proxy 4/5] COPY 99-bootstrap.sh /docker-entrypoint.d/99-bootstrap.sh
+#14 CACHED
+
+#15 [proxy 5/5] RUN chmod +x /docker-entrypoint.d/99-bootstrap.sh
+#15 CACHED
+
+#16 [proxy] exporting to image
+#16 exporting layers done
+#16 exporting manifest sha256:d4c8bdd3a21938fadc9fc6042e6e8ec68805200d7d5b82c50b1ed25a983dbcdc done
+#16 exporting config sha256:d3497ed8346fac5892fe9f2509af4f4352e7f82db046c3e69c1c08b743a4b3fa done
+#16 exporting attestation manifest sha256:2f6680ce0a061e1d787c703909012ea42f88e459089a5fdcf4525746f8c26709 0.0s done
+#16 exporting manifest list sha256:3a1f8c85e714471f548e9e05a7dac43abf4cc846db906a4042a9095e9ac32e1b 0.0s done
+#16 naming to docker.io/library/perch-proxy:latest done
+#16 unpacking to docker.io/library/perch-proxy:latest 0.0s done
+#16 DONE 0.2s
+
+#7 [controller internal] load metadata for docker.io/library/python:3.11-slim
+#7 ...
+
+#17 [proxy] resolving provenance for metadata file
+#17 DONE 0.0s
+
+#7 [controller internal] load metadata for docker.io/library/python:3.11-slim
+#7 DONE 2.1s
+
+#18 [loadgen internal] load .dockerignore
+#18 transferring context: 2B 0.0s done
+#18 DONE 0.1s
+
+#19 [stable internal] load .dockerignore
+#19 transferring context: 2B 0.0s done
+#19 DONE 0.1s
+
+#20 [canary internal] load .dockerignore
+#20 transferring context: 2B 0.1s done
+#20 DONE 0.1s
+
+#21 [loadgen internal] load build context
+#21 transferring context: 76B 0.1s done
+#21 DONE 0.1s
+
+#22 [controller internal] load .dockerignore
+#22 transferring context: 2B 0.1s done
+#22 DONE 0.2s
+
+#23 [loadgen 1/5] FROM docker.io/library/python:3.11-slim@sha256:07d4824036af339fa1b6ef769cc99d9c10a141769538b52b3b597c84f7a7b535
+#23 resolve docker.io/library/python:3.11-slim@sha256:07d4824036af339fa1b6ef769cc99d9c10a141769538b52b3b597c84f7a7b535 0.1s done
+#23 ...
+
+#24 [stable internal] load build context
+#24 transferring context: 5.67kB 0.1s done
+#24 DONE 0.1s
+
+#25 [canary internal] load build context
+#25 transferring context: 5.67kB 0.1s done
+#25 DONE 0.1s
+
+#23 [controller 1/5] FROM docker.io/library/python:3.11-slim@sha256:07d4824036af339fa1b6ef769cc99d9c10a141769538b52b3b597c84f7a7b535
+#23 resolve docker.io/library/python:3.11-slim@sha256:07d4824036af339fa1b6ef769cc99d9c10a141769538b52b3b597c84f7a7b535 0.1s done
+#23 sha256:bbe7053e6def9842d628414346e26f25e499463adb6ca48c0c8932e036e44000 0B / 249B 0.2s
+#23 sha256:7efbce397249e9202b070b8e638baff71160948c640b9a44f2226419a71f410d 0B / 14.46MB 0.2s
+#23 sha256:53daecf7856e9b7235583f1ec326387aae7d29af3d5cd2efc20246259ab817cc 0B / 1.29MB 0.2s
+#23 sha256:37fb86c2a767b88d500c6872195f88078f64765fe0d2f9cc375cc2efbd4c0a41 0B / 29.86MB 0.2s
+#23 ...
+
+#26 [controller internal] load build context
+#26 transferring context: 68.89kB 0.3s done
+#26 DONE 0.4s
+
+#23 [controller 1/5] FROM docker.io/library/python:3.11-slim@sha256:07d4824036af339fa1b6ef769cc99d9c10a141769538b52b3b597c84f7a7b535
+#23 sha256:bbe7053e6def9842d628414346e26f25e499463adb6ca48c0c8932e036e44000 249B / 249B 0.3s done
+#23 sha256:7efbce397249e9202b070b8e638baff71160948c640b9a44f2226419a71f410d 1.05MB / 14.46MB 0.9s
+#23 sha256:7efbce397249e9202b070b8e638baff71160948c640b9a44f2226419a71f410d 3.15MB / 14.46MB 1.1s
+#23 sha256:7efbce397249e9202b070b8e638baff71160948c640b9a44f2226419a71f410d 5.24MB / 14.46MB 1.2s
+#23 sha256:7efbce397249e9202b070b8e638baff71160948c640b9a44f2226419a71f410d 7.34MB / 14.46MB 1.4s
+#23 sha256:7efbce397249e9202b070b8e638baff71160948c640b9a44f2226419a71f410d 8.39MB / 14.46MB 1.5s
+#23 sha256:53daecf7856e9b7235583f1ec326387aae7d29af3d5cd2efc20246259ab817cc 1.29MB / 1.29MB 1.4s done
+#23 sha256:7efbce397249e9202b070b8e638baff71160948c640b9a44f2226419a71f410d 9.44MB / 14.46MB 1.7s
+#23 sha256:37fb86c2a767b88d500c6872195f88078f64765fe0d2f9cc375cc2efbd4c0a41 2.10MB / 29.86MB 1.5s
+#23 sha256:7efbce397249e9202b070b8e638baff71160948c640b9a44f2226419a71f410d 10.49MB / 14.46MB 1.8s
+#23 sha256:7efbce397249e9202b070b8e638baff71160948c640b9a44f2226419a71f410d 12.58MB / 14.46MB 2.0s
+#23 sha256:37fb86c2a767b88d500c6872195f88078f64765fe0d2f9cc375cc2efbd4c0a41 4.19MB / 29.86MB 1.8s
+#23 sha256:7efbce397249e9202b070b8e638baff71160948c640b9a44f2226419a71f410d 13.63MB / 14.46MB 2.1s
+#23 sha256:37fb86c2a767b88d500c6872195f88078f64765fe0d2f9cc375cc2efbd4c0a41 6.29MB / 29.86MB 2.0s
+#23 sha256:7efbce397249e9202b070b8e638baff71160948c640b9a44f2226419a71f410d 14.46MB / 14.46MB 2.1s done
+#23 sha256:37fb86c2a767b88d500c6872195f88078f64765fe0d2f9cc375cc2efbd4c0a41 10.49MB / 29.86MB 2.3s
+#23 sha256:37fb86c2a767b88d500c6872195f88078f64765fe0d2f9cc375cc2efbd4c0a41 12.58MB / 29.86MB 2.4s
+#23 sha256:37fb86c2a767b88d500c6872195f88078f64765fe0d2f9cc375cc2efbd4c0a41 15.73MB / 29.86MB 2.6s
+#23 sha256:37fb86c2a767b88d500c6872195f88078f64765fe0d2f9cc375cc2efbd4c0a41 17.83MB / 29.86MB 2.7s
+#23 sha256:37fb86c2a767b88d500c6872195f88078f64765fe0d2f9cc375cc2efbd4c0a41 22.02MB / 29.86MB 3.0s
+#23 sha256:37fb86c2a767b88d500c6872195f88078f64765fe0d2f9cc375cc2efbd4c0a41 24.12MB / 29.86MB 3.2s
+#23 sha256:37fb86c2a767b88d500c6872195f88078f64765fe0d2f9cc375cc2efbd4c0a41 26.21MB / 29.86MB 3.3s
+#23 sha256:37fb86c2a767b88d500c6872195f88078f64765fe0d2f9cc375cc2efbd4c0a41 28.31MB / 29.86MB 3.5s
+#23 sha256:37fb86c2a767b88d500c6872195f88078f64765fe0d2f9cc375cc2efbd4c0a41 29.86MB / 29.86MB 3.5s done
+#23 extracting sha256:37fb86c2a767b88d500c6872195f88078f64765fe0d2f9cc375cc2efbd4c0a41
+#23 extracting sha256:37fb86c2a767b88d500c6872195f88078f64765fe0d2f9cc375cc2efbd4c0a41 2.2s done
+#23 extracting sha256:37fb86c2a767b88d500c6872195f88078f64765fe0d2f9cc375cc2efbd4c0a41 2.2s done
+#23 extracting sha256:53daecf7856e9b7235583f1ec326387aae7d29af3d5cd2efc20246259ab817cc
+#23 extracting sha256:53daecf7856e9b7235583f1ec326387aae7d29af3d5cd2efc20246259ab817cc 0.2s done
+#23 extracting sha256:53daecf7856e9b7235583f1ec326387aae7d29af3d5cd2efc20246259ab817cc 0.2s done
+#23 extracting sha256:7efbce397249e9202b070b8e638baff71160948c640b9a44f2226419a71f410d
+#23 extracting sha256:7efbce397249e9202b070b8e638baff71160948c640b9a44f2226419a71f410d 1.6s done
+#23 extracting sha256:7efbce397249e9202b070b8e638baff71160948c640b9a44f2226419a71f410d 1.6s done
+#23 extracting sha256:bbe7053e6def9842d628414346e26f25e499463adb6ca48c0c8932e036e44000 0.0s done
+#23 DONE 8.0s
+
+#27 [loadgen 2/5] WORKDIR /app
+#27 DONE 0.1s
+
+#28 [controller 3/6] COPY controller/requirements.txt .
+#28 DONE 0.1s
+
+#29 [controller 4/6] RUN pip install --no-cache-dir -r requirements.txt
+#29 ...
+
+#30 [loadgen 3/5] COPY requirements.txt .
+#30 DONE 0.1s
+
+#31 [stable 3/5] COPY requirements.txt .
+#31 DONE 0.1s
+
+#32 [canary 4/5] RUN pip install --no-cache-dir -r requirements.txt
+#32 ...
+
+#29 [controller 4/6] RUN pip install --no-cache-dir -r requirements.txt
+#29 5.197 Collecting httpx>=0.27 (from -r requirements.txt (line 1))
+#29 5.389   Downloading httpx-0.28.1-py3-none-any.whl.metadata (7.1 kB)
+#29 5.495 Collecting jinja2>=3.1 (from -r requirements.txt (line 2))
+#29 5.549   Downloading jinja2-3.1.6-py3-none-any.whl.metadata (2.9 kB)
+#29 5.699 Collecting anyio (from httpx>=0.27->-r requirements.txt (line 1))
+#29 5.761   Downloading anyio-4.16.0-py3-none-any.whl.metadata (4.7 kB)
+#29 5.884 Collecting certifi (from httpx>=0.27->-r requirements.txt (line 1))
+#29 5.938   Downloading certifi-2026.10.23-py3-none-any.whl.metadata (2.5 kB)
+#29 6.064 Collecting httpcore==1.* (from httpx>=0.27->-r requirements.txt (line 1))
+#29 6.122   Downloading httpcore-1.0.9-py3-none-any.whl.metadata (21 kB)
+#29 6.232 Collecting idna (from httpx>=0.27->-r requirements.txt (line 1))
+#29 6.287   Downloading idna-3.20-py3-none-any.whl.metadata (7.2 kB)
+#29 6.410 Collecting h11>=0.16 (from httpcore==1.*->httpx>=0.27->-r requirements.txt (line 1))
+#29 6.470   Downloading h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+#29 6.781 Collecting MarkupSafe>=2.0 (from jinja2>=3.1->-r requirements.txt (line 2))
+#29 6.838   Downloading markupsafe-3.0.4-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.7 kB)
+#29 6.973 Collecting typing_extensions>=4.16.0 (from anyio->httpx>=0.27->-r requirements.txt (line 1))
+#29 7.027   Downloading typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+#29 7.110 Downloading httpx-0.28.1-py3-none-any.whl (73 kB)
+#29 7.169    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 73.5/73.5 kB 1.3 MB/s eta 0:00:00
+#29 7.224 Downloading httpcore-1.0.9-py3-none-any.whl (78 kB)
+#29 7.242    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 78.8/78.8 kB 6.5 MB/s eta 0:00:00
+#29 7.297 Downloading jinja2-3.1.6-py3-none-any.whl (134 kB)
+#29 7.349    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 134.9/134.9 kB 2.8 MB/s eta 0:00:00
+#29 7.405 Downloading markupsafe-3.0.4-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (22 kB)
+#29 7.459 Downloading anyio-4.16.0-py3-none-any.whl (134 kB)
+#29 7.480    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 134.5/134.5 kB 9.1 MB/s eta 0:00:00
+#29 7.534 Downloading idna-3.20-py3-none-any.whl (69 kB)
+#29 7.549    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 69.6/69.6 kB 7.7 MB/s eta 0:00:00
+#29 7.603 Downloading certifi-2026.10.23-py3-none-any.whl (135 kB)
+#29 7.619    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 135.1/135.1 kB 12.8 MB/s eta 0:00:00
+#29 7.675 Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+#29 7.733 Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+#29 7.743    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 45.6/45.6 kB 7.9 MB/s eta 0:00:00
+#29 7.937 Installing collected packages: typing_extensions, MarkupSafe, idna, h11, certifi, jinja2, httpcore, anyio, httpx
+#29 ...
+
+#33 [loadgen 4/5] RUN pip install --no-cache-dir -r requirements.txt
+#33 5.091 Collecting httpx>=0.27 (from -r requirements.txt (line 1))
+#33 5.302   Downloading httpx-0.28.1-py3-none-any.whl.metadata (7.1 kB)
+#33 5.433 Collecting anyio (from httpx>=0.27->-r requirements.txt (line 1))
+#33 5.476   Downloading anyio-4.16.0-py3-none-any.whl.metadata (4.7 kB)
+#33 5.579 Collecting certifi (from httpx>=0.27->-r requirements.txt (line 1))
+#33 5.622   Downloading certifi-2026.10.23-py3-none-any.whl.metadata (2.5 kB)
+#33 5.732 Collecting httpcore==1.* (from httpx>=0.27->-r requirements.txt (line 1))
+#33 5.774   Downloading httpcore-1.0.9-py3-none-any.whl.metadata (21 kB)
+#33 5.869 Collecting idna (from httpx>=0.27->-r requirements.txt (line 1))
+#33 5.915   Downloading idna-3.20-py3-none-any.whl.metadata (7.2 kB)
+#33 6.003 Collecting h11>=0.16 (from httpcore==1.*->httpx>=0.27->-r requirements.txt (line 1))
+#33 6.046   Downloading h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+#33 6.163 Collecting typing_extensions>=4.16.0 (from anyio->httpx>=0.27->-r requirements.txt (line 1))
+#33 6.206   Downloading typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+#33 6.273 Downloading httpx-0.28.1-py3-none-any.whl (73 kB)
+#33 6.318    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 73.5/73.5 kB 1.9 MB/s eta 0:00:00
+#33 6.361 Downloading httpcore-1.0.9-py3-none-any.whl (78 kB)
+#33 6.384    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 78.8/78.8 kB 4.4 MB/s eta 0:00:00
+#33 6.427 Downloading anyio-4.16.0-py3-none-any.whl (134 kB)
+#33 6.464    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 134.5/134.5 kB 4.3 MB/s eta 0:00:00
+#33 6.505 Downloading idna-3.20-py3-none-any.whl (69 kB)
+#33 6.519    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 69.6/69.6 kB 9.5 MB/s eta 0:00:00
+#33 6.560 Downloading certifi-2026.10.23-py3-none-any.whl (135 kB)
+#33 6.579    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 135.1/135.1 kB 9.1 MB/s eta 0:00:00
+#33 6.625 Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+#33 6.673 Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+#33 6.679    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 45.6/45.6 kB 47.1 MB/s eta 0:00:00
+#33 6.836 Installing collected packages: typing_extensions, idna, h11, certifi, httpcore, anyio, httpx
+#33 7.861 Successfully installed anyio-4.16.0 certifi-2026.10.23 h11-0.16.0 httpcore-1.0.9 httpx-0.28.1 idna-3.20 typing_extensions-4.16.0
+#33 7.861 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+#33 8.143 
+#33 8.143 [notice] A new release of pip is available: 24.0 -> 26.3
+#33 8.143 [notice] To update, run: pip install --upgrade pip
+#33 DONE 8.4s
+
+#34 [loadgen 5/5] COPY generate_traffic.py .
+#34 DONE 0.1s
+
+#35 [loadgen] exporting to image
+#35 exporting layers
+#35 ...
+
+#29 [controller 4/6] RUN pip install --no-cache-dir -r requirements.txt
+#29 9.244 Successfully installed MarkupSafe-3.0.4 anyio-4.16.0 certifi-2026.10.23 h11-0.16.0 httpcore-1.0.9 httpx-0.28.1 idna-3.20 jinja2-3.1.6 typing_extensions-4.16.0
+#29 9.246 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+#29 9.547 
+#29 9.547 [notice] A new release of pip is available: 24.0 -> 26.3
+#29 9.547 [notice] To update, run: pip install --upgrade pip
+#29 DONE 9.8s
+
+#36 [controller 5/6] COPY controller/ .
+#36 DONE 0.1s
+
+#32 [canary 4/5] RUN pip install --no-cache-dir -r requirements.txt
+#32 5.344 Collecting fastapi>=0.110 (from -r requirements.txt (line 1))
+#32 5.502   Downloading fastapi-0.165.0-py3-none-any.whl.metadata (27 kB)
+#32 5.666 Collecting uvicorn>=0.29 (from uvicorn[standard]>=0.29->-r requirements.txt (line 2))
+#32 5.709   Downloading uvicorn-0.54.0-py3-none-any.whl.metadata (6.6 kB)
+#32 5.797 Collecting prometheus-client>=0.20 (from -r requirements.txt (line 3))
+#32 5.836   Downloading prometheus_client-0.26.0-py3-none-any.whl.metadata (2.1 kB)
+#32 6.082 Collecting starlette>=1.6.0 (from fastapi>=0.110->-r requirements.txt (line 1))
+#32 6.121   Downloading starlette-1.10.0-py3-none-any.whl.metadata (6.6 kB)
+#32 6.233 Collecting anyio>=4.1.0 (from fastapi>=0.110->-r requirements.txt (line 1))
+#32 6.272   Downloading anyio-4.16.0-py3-none-any.whl.metadata (4.7 kB)
+#32 6.801 Collecting pydantic>=2.9.0 (from fastapi>=0.110->-r requirements.txt (line 1))
+#32 6.845   Downloading pydantic-2.14.4-py3-none-any.whl.metadata (143 kB)
+#32 6.901      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 144.0/144.0 kB 2.9 MB/s eta 0:00:00
+#32 7.007 Collecting typing-extensions>=4.8.0 (from fastapi>=0.110->-r requirements.txt (line 1))
+#32 7.044   Downloading typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+#32 7.110 Collecting typing-inspection>=0.4.2 (from fastapi>=0.110->-r requirements.txt (line 1))
+#32 7.149   Downloading typing_inspection-0.4.5-py3-none-any.whl.metadata (2.6 kB)
+#32 7.266 Collecting annotated-doc>=0.0.2 (from fastapi>=0.110->-r requirements.txt (line 1))
+#32 7.311   Downloading annotated_doc-0.0.7-py3-none-any.whl.metadata (6.4 kB)
+#32 7.419 Collecting opentelemetry-api>=1.44.0 (from fastapi>=0.110->-r requirements.txt (line 1))
+#32 7.456   Downloading opentelemetry_api-1.45.2-py3-none-any.whl.metadata (1.4 kB)
+#32 7.564 Collecting click>=7.0 (from uvicorn>=0.29->uvicorn[standard]>=0.29->-r requirements.txt (line 2))
+#32 7.603   Downloading click-8.5.1-py3-none-any.whl.metadata (2.6 kB)
+#32 7.668 Collecting h11>=0.8 (from uvicorn>=0.29->uvicorn[standard]>=0.29->-r requirements.txt (line 2))
+#32 7.707   Downloading h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+#32 7.900 Collecting httptools>=0.8.0 (from uvicorn[standard]>=0.29->-r requirements.txt (line 2))
+#32 7.940   Downloading httptools-0.9.0-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (3.5 kB)
+#32 8.034 Collecting python-dotenv>=0.13 (from uvicorn[standard]>=0.29->-r requirements.txt (line 2))
+#32 8.077   Downloading python_dotenv-1.2.4-py3-none-any.whl.metadata (29 kB)
+#32 8.227 Collecting pyyaml>=5.1 (from uvicorn[standard]>=0.29->-r requirements.txt (line 2))
+#32 8.267   Downloading pyyaml-6.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
+#32 8.439 Collecting uvloop>=0.15.1 (from uvicorn[standard]>=0.29->-r requirements.txt (line 2))
+#32 8.476   Downloading uvloop-0.23.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (5.1 kB)
+#32 8.740 Collecting watchfiles>=0.20 (from uvicorn[standard]>=0.29->-r requirements.txt (line 2))
+#32 8.779   Downloading watchfiles-1.3.0-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (4.9 kB)
+#32 9.275 Collecting websockets>=13.0 (from uvicorn[standard]>=0.29->-r requirements.txt (line 2))
+#32 9.316   Downloading websockets-17.4-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (6.3 kB)
+#32 9.407 Collecting idna>=2.8 (from anyio>=4.1.0->fastapi>=0.110->-r requirements.txt (line 1))
+#32 9.448   Downloading idna-3.20-py3-none-any.whl.metadata (7.2 kB)
+#32 9.564 Collecting annotated-types>=0.6.0 (from pydantic>=2.9.0->fastapi>=0.110->-r requirements.txt (line 1))
+#32 9.607   Downloading annotated_types-0.8.0-py3-none-any.whl.metadata (15 kB)
+#32 ...
+
+#37 [controller 6/6] COPY proxy/nginx.conf.j2 /app/nginx.conf.j2
+#37 DONE 0.1s
+
+#35 [loadgen] exporting to image
+#35 exporting layers 1.8s done
+#35 exporting manifest sha256:09bdceb3bcbb2ba2cb92de35bbfaf090f6e0203a1d1152e40c0e95e8c5f7f8aa 0.0s done
+#35 exporting config sha256:d77eebb60c215cd4e20f4d80a46c92884baec1aa85f9bdbf1950620e8159cbe9 0.0s done
+#35 exporting attestation manifest sha256:e8f79a8034a0acd818be837c65b75b044b8d30c58b5ebb88228730ab665e5eec
+#35 exporting attestation manifest sha256:e8f79a8034a0acd818be837c65b75b044b8d30c58b5ebb88228730ab665e5eec 0.0s done
+#35 exporting manifest list sha256:24c380188ce7d4cf908cf381af2647777194147e0a28c2f0e9115c3dda7d297a 0.0s done
+#35 naming to docker.io/library/perch-loadgen:latest done
+#35 unpacking to docker.io/library/perch-loadgen:latest
+#35 unpacking to docker.io/library/perch-loadgen:latest 0.6s done
+#35 DONE 2.7s
+
+#38 [controller] exporting to image
+#38 ...
+
+#39 [loadgen] resolving provenance for metadata file
+#39 DONE 0.0s
+
+#32 [canary 4/5] RUN pip install --no-cache-dir -r requirements.txt
+#32 10.25 Collecting pydantic-core==2.50.5 (from pydantic>=2.9.0->fastapi>=0.110->-r requirements.txt (line 1))
+#32 10.29   Downloading pydantic_core-2.50.5-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (6.6 kB)
+#32 10.69 Downloading fastapi-0.165.0-py3-none-any.whl (159 kB)
+#32 10.71    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 159.5/159.5 kB 14.1 MB/s eta 0:00:00
+#32 10.75 Downloading uvicorn-0.54.0-py3-none-any.whl (87 kB)
+#32 10.76    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 87.4/87.4 kB 9.4 MB/s eta 0:00:00
+#32 10.80 Downloading prometheus_client-0.26.0-py3-none-any.whl (64 kB)
+#32 10.81    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 64.5/64.5 kB 15.5 MB/s eta 0:00:00
+#32 10.85 Downloading annotated_doc-0.0.7-py3-none-any.whl (5.3 kB)
+#32 10.89 Downloading anyio-4.16.0-py3-none-any.whl (134 kB)
+#32 10.90    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 134.5/134.5 kB 14.9 MB/s eta 0:00:00
+#32 10.94 Downloading click-8.5.1-py3-none-any.whl (126 kB)
+#32 10.96    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 126.2/126.2 kB 13.1 MB/s eta 0:00:00
+#32 10.99 Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+#32 11.04 Downloading httptools-0.9.0-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (499 kB)
+#32 11.09    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 499.1/499.1 kB 10.8 MB/s eta 0:00:00
+#32 11.13 Downloading opentelemetry_api-1.45.2-py3-none-any.whl (60 kB)
+#32 11.14    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 60.3/60.3 kB 13.2 MB/s eta 0:00:00
+#32 11.18 Downloading pydantic-2.14.4-py3-none-any.whl (494 kB)
+#32 11.21    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 494.9/494.9 kB 17.0 MB/s eta 0:00:00
+#32 11.26 Downloading pydantic_core-2.50.5-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (2.3 MB)
+#32 ...
+
+#38 [controller] exporting to image
+#38 exporting layers 0.4s done
+#38 exporting manifest sha256:f5bf3c8c9033b365fa2205cf275fb2eec09699cad759477a505db732f9a6a63f 0.0s done
+#38 exporting config sha256:c109d82b104a18354d0c60c65bcbe9d2a91d8991fde91906e354a6ce2c9c169d 0.0s done
+#38 exporting attestation manifest sha256:ee0b7b0523487661d9ee8d8d7f7edaf4f8507a418dc29516ffbe83fd907ba3f6 0.1s done
+#38 exporting manifest list sha256:07535b81af77d491020cbc02defa71d9a7a62f8c7140ae705edc03aa25237026 0.0s done
+#38 naming to docker.io/library/perch-controller:latest done
+#38 unpacking to docker.io/library/perch-controller:latest 0.6s done
+#38 DONE 1.3s
+
+#32 [canary 4/5] RUN pip install --no-cache-dir -r requirements.txt
+#32 11.47    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.3/2.3 MB 10.7 MB/s eta 0:00:00
+#32 11.51 Downloading python_dotenv-1.2.4-py3-none-any.whl (23 kB)
+#32 11.55 Downloading pyyaml-6.0.3-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (806 kB)
+#32 ...
+
+#40 [controller] resolving provenance for metadata file
+#40 DONE 0.0s
+
+#32 [canary 4/5] RUN pip install --no-cache-dir -r requirements.txt
+#32 11.63    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 806.6/806.6 kB 11.4 MB/s eta 0:00:00
+#32 11.67 Downloading starlette-1.10.0-py3-none-any.whl (80 kB)
+#32 11.68    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 80.6/80.6 kB 8.0 MB/s eta 0:00:00
+#32 11.72 Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+#32 11.73    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 45.6/45.6 kB 30.6 MB/s eta 0:00:00
+#32 11.76 Downloading typing_inspection-0.4.5-py3-none-any.whl (14 kB)
+#32 11.80 Downloading uvloop-0.23.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (4.0 MB)
+#32 12.15    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.0/4.0 MB 11.4 MB/s eta 0:00:00
+#32 12.20 Downloading watchfiles-1.3.0-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (458 kB)
+#32 12.24    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 458.4/458.4 kB 11.2 MB/s eta 0:00:00
+#32 12.28 Downloading websockets-17.4-cp311-cp311-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (226 kB)
+#32 12.30    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 226.0/226.0 kB 19.2 MB/s eta 0:00:00
+#32 12.33 Downloading annotated_types-0.8.0-py3-none-any.whl (13 kB)
+#32 12.37 Downloading idna-3.20-py3-none-any.whl (69 kB)
+#32 12.38    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 69.6/69.6 kB 23.9 MB/s eta 0:00:00
+#32 12.70 Installing collected packages: websockets, uvloop, typing-extensions, pyyaml, python-dotenv, prometheus-client, idna, httptools, h11, click, annotated-types, annotated-doc, uvicorn, typing-inspection, pydantic-core, opentelemetry-api, anyio, watchfiles, starlette, pydantic, fastapi
+#32 16.03 Successfully installed annotated-doc-0.0.7 annotated-types-0.8.0 anyio-4.16.0 click-8.5.1 fastapi-0.165.0 h11-0.16.0 httptools-0.9.0 idna-3.20 opentelemetry-api-1.45.2 prometheus-client-0.26.0 pydantic-2.14.4 pydantic-core-2.50.5 python-dotenv-1.2.4 pyyaml-6.0.3 starlette-1.10.0 typing-extensions-4.16.0 typing-inspection-0.4.5 uvicorn-0.54.0 uvloop-0.23.0 watchfiles-1.3.0 websockets-17.4
+#32 16.03 WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+#32 16.33 
+#32 16.33 [notice] A new release of pip is available: 24.0 -> 26.3
+#32 16.33 [notice] To update, run: pip install --upgrade pip
+#32 DONE 17.2s
+
+#41 [canary 5/5] COPY app.py .
+#41 DONE 0.1s
+
+#42 [canary] exporting to image
+#42 exporting layers
+#42 exporting layers 4.2s done
+#42 exporting manifest sha256:1b8c330f5d337d69afffd549aaa17d3c8b980446ac233415b10ab946a5e8e085 0.0s done
+#42 exporting config sha256:f7fdbb1be182a61384a67199302b8f561607618250a2ed66ebf2f09bf1eb5254 0.0s done
+#42 exporting attestation manifest sha256:3f7b5ea48153c03a95ae211558b12d5285330120e4864fb44672e9b6f134791c 0.1s done
+#42 exporting manifest list sha256:d1190df93e49b698eaca7cb4f2aa97e487e0abdd8f6cd6c0a46dced856272891
+#42 exporting manifest list sha256:d1190df93e49b698eaca7cb4f2aa97e487e0abdd8f6cd6c0a46dced856272891 0.0s done
+#42 naming to docker.io/library/perch-canary:latest done
+#42 unpacking to docker.io/library/perch-canary:latest
+#42 unpacking to docker.io/library/perch-canary:latest 1.2s done
+#42 DONE 5.7s
+
+#43 [stable] exporting to image
+#43 exporting layers 4.2s done
+#43 exporting manifest sha256:8e8b5f2c01677e2f8dd5b1bcc7ab9eb087f2aec7e5a231362b68af4b595f4e80 0.0s done
+#43 exporting config sha256:80dc1a4885eb20e6ead8f48c8df2e947a365188c96bcbe9d94594fde19eb0eb2 0.0s done
+#43 exporting attestation manifest sha256:8213933a9487dd5ce60aace4808cf91dcc7cba3b5f34edfc3decb67509a6e633 0.1s done
+#43 exporting manifest list sha256:52ad8357432fc329e19b5e647e7ed0e6165e7a6aeafe7beb9c0a81e53b241f34 0.0s done
+#43 naming to docker.io/library/perch-stable:latest 0.0s done
+#43 unpacking to docker.io/library/perch-stable:latest 1.2s done
+#43 DONE 5.7s
+
+#44 [stable] resolving provenance for metadata file
+#44 DONE 0.1s
+
+#45 [canary] resolving provenance for metadata file
+#45 DONE 0.0s
+ Image perch-proxy Built 
+ Image perch-stable Built 
+ Image perch-canary Built 
+ Image perch-controller Built 
+ Image perch-loadgen Built 
++ docker compose -f /mnt/f/Mini-Projects/CloudComputing/PERCH/docker-compose.yml up -d stable canary proxy prometheus
+ Container perch-canary-1 Recreate 
+ Container perch-stable-1 Recreate 
+ Container perch-stable-1 Recreated 
+ Container perch-canary-1 Recreated 
+ Container perch-proxy Recreate 
+ Container perch-proxy Recreated 
+ Container perch-canary-1 Starting 
+ Container perch-stable-1 Starting 
+ Container perch-stable-1 Started 
+ Container perch-canary-1 Started 
+ Container perch-canary-1 Waiting 
+ Container perch-stable-1 Waiting 
+ Container perch-stable-1 Waiting 
+ Container perch-canary-1 Waiting 
+ Container perch-canary-1 Healthy 
+ Container perch-stable-1 Healthy 
+ Container perch-canary-1 Healthy 
+ Container perch-prometheus-1 Starting 
+ Container perch-stable-1 Healthy 
+ Container perch-proxy Starting 
+ Container perch-proxy Started 
+ Container perch-prometheus-1 Started 
++ docker compose -f /mnt/f/Mini-Projects/CloudComputing/PERCH/docker-compose.yml up -d --force-recreate canary
+ Container perch-canary-1 Recreate 
+ Container perch-canary-1 Recreated 
+ Container perch-canary-1 Starting 
+ Container perch-canary-1 Started 
++ docker compose -f /mnt/f/Mini-Projects/CloudComputing/PERCH/docker-compose.yml --profile load up -d --force-recreate loadgen
+ Container perch-stable-1 Running 
+ Container perch-canary-1 Running 
+ Container perch-proxy Running 
+ Container perch-loadgen-1 Recreate 
+ Container perch-loadgen-1 Recreated 
+ Container perch-canary-1 Waiting 
+ Container perch-stable-1 Waiting 
+ Container perch-canary-1 Healthy 
+ Container perch-stable-1 Healthy 
+ Container perch-loadgen-1 Starting 
+ Container perch-loadgen-1 Started 
++ docker compose -f /mnt/f/Mini-Projects/CloudComputing/PERCH/docker-compose.yml up -d --force-recreate controller
+ Container perch-canary-1 Running 
+ Container perch-stable-1 Running 
+ Container perch-prometheus-1 Running 
+ Container perch-proxy Running 
+ Container perch-controller Recreate 
+ Container perch-controller Recreated 
+ Container perch-stable-1 Waiting 
+ Container perch-canary-1 Waiting 
+ Container perch-canary-1 Waiting 
+ Container perch-stable-1 Waiting 
+ Container perch-canary-1 Healthy 
+ Container perch-canary-1 Healthy 
+ Container perch-stable-1 Healthy 
+ Container perch-stable-1 Healthy 
+ Container perch-controller Starting 
+ Container perch-controller Started 
++ docker compose -f /mnt/f/Mini-Projects/CloudComputing/PERCH/docker-compose.yml --profile load stop loadgen controller
+ Container perch-loadgen-1 Stopping 
+ Container perch-controller Stopping 
+ Container perch-controller Stopped 
+ Container perch-loadgen-1 Stopped 
++ /mnt/f/Mini-Projects/CloudComputing/PERCH/.venv/bin/python /mnt/f/Mini-Projects/CloudComputing/PERCH/analysis/plot_results.py --log /mnt/f/Mini-Projects/CloudComputing/PERCH/results/archive/good_20261120T121132Z/decision_log.jsonl --out-dir /mnt/f/Mini-Projects/CloudComputing/PERCH/results/archive/good_20261120T121132Z --title good
+wrote /mnt/f/Mini-Projects/CloudComputing/PERCH/results/archive/good_20261120T121132Z/rollout.png
+SUMMARY {"scenario": "good", "expect": "promote", "ok": true, "decision_mode": "naive_threshold", "final_weight": 100, "promoted": true, "rolled_back": false, "seconds": 138.6, "canary_requests": 2863, "canary_errors": 25, "total_requests": 7980, "blast_radius_pct": 35.88, "reason": "naive: canary within error and latency thresholds", "run_dir": "results/archive/good_20261120T121132Z"}

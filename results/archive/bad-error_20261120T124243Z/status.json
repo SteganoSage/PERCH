@@ -1,0 +1,1 @@
+{"canary_weight": 0, "stable_weight": 100, "rolled_back": true, "promoted": false, "last_action": "rollback", "reason": "error_rate: canary error 0.319 vs stable 0.007 significantly worse (\u0394 CI [0.190, 0.458] excludes 0)"}

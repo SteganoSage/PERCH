@@ -1,0 +1,306 @@
+=== scenario bad-latency expect=rollback ===
++ docker compose -f /mnt/f/Mini-Projects/CloudComputing/PERCH/docker-compose.yml --profile load stop loadgen controller
+ Container perch-loadgen-1 Stopping 
+ Container perch-controller Stopping 
+ Container perch-loadgen-1 Stopped 
+ Container perch-controller Stopped 
++ docker compose -f /mnt/f/Mini-Projects/CloudComputing/PERCH/docker-compose.yml --profile load build
+ Image perch-controller Building 
+ Image perch-loadgen Building 
+ Image perch-stable Building 
+ Image perch-canary Building 
+ Image perch-proxy Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 2.42kB done
+#1 DONE 0.0s
+
+#2 [loadgen internal] load build definition from Dockerfile
+#2 transferring dockerfile: 440B 0.0s done
+#2 DONE 0.1s
+
+#3 [loadgen internal] load metadata for docker.io/library/python:3.11-slim
+#3 ...
+
+#4 [stable internal] load build definition from Dockerfile
+#4 transferring dockerfile: 485B 0.0s done
+#4 DONE 0.1s
+
+#5 [proxy internal] load build definition from Dockerfile
+#5 transferring dockerfile: 547B 0.0s done
+#5 DONE 0.1s
+
+#6 [canary internal] load build definition from Dockerfile
+#6 transferring dockerfile: 485B 0.1s done
+#6 DONE 0.2s
+
+#7 [controller internal] load build definition from Dockerfile
+#7 transferring dockerfile: 495B 0.1s done
+#7 DONE 0.2s
+
+#3 [canary internal] load metadata for docker.io/library/python:3.11-slim
+#3 ...
+
+#8 [proxy internal] load metadata for docker.io/library/nginx:1.27-alpine
+#8 DONE 2.2s
+
+#3 [canary internal] load metadata for docker.io/library/python:3.11-slim
+#3 DONE 2.2s
+
+#9 [proxy internal] load .dockerignore
+#9 transferring context: 2B 0.0s done
+#9 DONE 0.1s
+
+#10 [loadgen internal] load .dockerignore
+#10 transferring context: 2B 0.1s done
+#10 DONE 0.1s
+
+#11 [proxy internal] load build context
+#11 DONE 0.0s
+
+#12 [stable internal] load .dockerignore
+#12 transferring context: 2B 0.1s done
+#12 DONE 0.1s
+
+#13 [stable internal] load build context
+#13 ...
+
+#14 [canary internal] load .dockerignore
+#14 transferring context: 2B 0.1s done
+#14 DONE 0.2s
+
+#15 [proxy 1/5] FROM docker.io/library/nginx:1.27-alpine@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10
+#15 resolve docker.io/library/nginx:1.27-alpine@sha256:65645c7bb6a0661892a8b03b89d0743208a18dd2f3f17a54ef4b76fb8e2f2a10 0.1s done
+#15 DONE 0.1s
+
+#16 [controller internal] load .dockerignore
+#16 transferring context: 2B 0.1s done
+#16 DONE 0.2s
+
+#17 [stable 1/5] FROM docker.io/library/python:3.11-slim@sha256:07d4824036af339fa1b6ef769cc99d9c10a141769538b52b3b597c84f7a7b535
+#17 resolve docker.io/library/python:3.11-slim@sha256:07d4824036af339fa1b6ef769cc99d9c10a141769538b52b3b597c84f7a7b535 0.1s done
+#17 DONE 0.1s
+
+#13 [stable internal] load build context
+#13 transferring context: 63B 0.1s done
+#13 DONE 0.2s
+
+#18 [loadgen internal] load build context
+#18 transferring context: 76B 0.1s done
+#18 DONE 0.2s
+
+#19 [loadgen 4/5] RUN pip install --no-cache-dir -r requirements.txt
+#19 CACHED
+
+#20 [loadgen 2/5] WORKDIR /app
+#20 CACHED
+
+#21 [loadgen 3/5] COPY requirements.txt .
+#21 CACHED
+
+#22 [loadgen 5/5] COPY generate_traffic.py .
+#22 CACHED
+
+#11 [proxy internal] load build context
+#11 transferring context: 104B 0.1s done
+#11 DONE 0.1s
+
+#23 [loadgen] exporting to image
+#23 exporting layers done
+#23 exporting manifest sha256:09bdceb3bcbb2ba2cb92de35bbfaf090f6e0203a1d1152e40c0e95e8c5f7f8aa 0.0s done
+#23 exporting config sha256:d77eebb60c215cd4e20f4d80a46c92884baec1aa85f9bdbf1950620e8159cbe9 0.0s done
+#23 ...
+
+#24 [canary internal] load build context
+#24 transferring context: 63B 0.1s done
+#24 DONE 0.2s
+
+#25 [proxy 2/5] COPY bootstrap.conf /etc/nginx/bootstrap.conf
+#25 CACHED
+
+#26 [proxy 4/5] COPY 99-bootstrap.sh /docker-entrypoint.d/99-bootstrap.sh
+#26 CACHED
+
+#27 [proxy 3/5] COPY nginx.conf.j2 /etc/nginx/nginx.conf.j2
+#27 CACHED
+
+#28 [proxy 5/5] RUN chmod +x /docker-entrypoint.d/99-bootstrap.sh
+#28 CACHED
+
+#29 [stable 4/5] RUN pip install --no-cache-dir -r requirements.txt
+#29 CACHED
+
+#30 [stable 3/5] COPY requirements.txt .
+#30 CACHED
+
+#20 [stable 2/5] WORKDIR /app
+#20 CACHED
+
+#31 [canary 5/5] COPY app.py .
+#31 CACHED
+
+#23 [loadgen] exporting to image
+#23 exporting attestation manifest sha256:c8a5eeca0c2ca3bab917e4aae8c63acb30dc779153e7574129bcc866b1346ac1
+#23 exporting attestation manifest sha256:c8a5eeca0c2ca3bab917e4aae8c63acb30dc779153e7574129bcc866b1346ac1 0.2s done
+#23 exporting manifest list sha256:e99d72bb55e2887560a0550d36924b8d76799adac64e8a2f4243ac2970b58eb5
+#23 ...
+
+#32 [controller internal] load build context
+#32 transferring context: 949B 0.4s done
+#32 DONE 0.4s
+
+#20 [controller 2/5] WORKDIR /app
+#20 CACHED
+
+#33 [controller 3/6] COPY controller/requirements.txt .
+#33 CACHED
+
+#34 [controller 4/6] RUN pip install --no-cache-dir -r requirements.txt
+#34 CACHED
+
+#35 [controller 5/6] COPY controller/ .
+#35 CACHED
+
+#36 [controller 6/6] COPY proxy/nginx.conf.j2 /app/nginx.conf.j2
+#36 CACHED
+
+#37 [controller] exporting to image
+#37 exporting layers done
+#37 exporting manifest sha256:f5bf3c8c9033b365fa2205cf275fb2eec09699cad759477a505db732f9a6a63f 0.1s done
+#37 exporting config sha256:c109d82b104a18354d0c60c65bcbe9d2a91d8991fde91906e354a6ce2c9c169d 0.1s done
+#37 ...
+
+#23 [loadgen] exporting to image
+#23 exporting manifest list sha256:e99d72bb55e2887560a0550d36924b8d76799adac64e8a2f4243ac2970b58eb5 0.2s done
+#23 naming to docker.io/library/perch-loadgen:latest 0.1s done
+#23 unpacking to docker.io/library/perch-loadgen:latest 0.1s done
+#23 DONE 0.8s
+
+#38 [canary] exporting to image
+#38 exporting layers done
+#38 exporting manifest sha256:1b8c330f5d337d69afffd549aaa17d3c8b980446ac233415b10ab946a5e8e085 0.0s done
+#38 exporting config sha256:f7fdbb1be182a61384a67199302b8f561607618250a2ed66ebf2f09bf1eb5254 0.0s done
+#38 exporting attestation manifest sha256:f97595c766b74f5787264a07943979ce38ac677dc468f1f1d995e5950face4c7 0.3s done
+#38 exporting manifest list sha256:99abb8495d3f87fe6b06480e734d9f493cd5f3317545ff52a19e32ef669a2e76 0.2s done
+#38 naming to docker.io/library/perch-canary:latest
+#38 naming to docker.io/library/perch-canary:latest 0.1s done
+#38 unpacking to docker.io/library/perch-canary:latest
+#38 ...
+
+#39 [proxy] exporting to image
+#39 exporting layers 0.0s done
+#39 exporting manifest sha256:d4c8bdd3a21938fadc9fc6042e6e8ec68805200d7d5b82c50b1ed25a983dbcdc 0.0s done
+#39 exporting config sha256:d3497ed8346fac5892fe9f2509af4f4352e7f82db046c3e69c1c08b743a4b3fa 0.0s done
+#39 exporting attestation manifest sha256:5203b4308f8f374985c67fb063a94bad6fdf182271780e1917410bea510cb6e0 0.3s done
+#39 exporting manifest list sha256:3408b46b96ec4d54197548bd7243a35104c7f68b74993b2335b2e06be6b863a0 0.2s done
+#39 naming to docker.io/library/perch-proxy:latest 0.1s done
+#39 unpacking to docker.io/library/perch-proxy:latest 0.2s done
+#39 DONE 1.1s
+
+#38 [canary] exporting to image
+#38 unpacking to docker.io/library/perch-canary:latest 0.1s done
+#38 DONE 1.1s
+
+#40 [stable] exporting to image
+#40 exporting layers done
+#40 exporting manifest sha256:8e8b5f2c01677e2f8dd5b1bcc7ab9eb087f2aec7e5a231362b68af4b595f4e80 0.0s done
+#40 exporting config sha256:80dc1a4885eb20e6ead8f48c8df2e947a365188c96bcbe9d94594fde19eb0eb2 0.0s done
+#40 exporting attestation manifest sha256:385b73baa3c85c866cc7af04007a4114a2ef5819cc3cb7a762105e7dde79c27e 0.3s done
+#40 exporting manifest list sha256:b7a136eb1da2996b34749dd8df0bdb76404d6e3aee81ebfd5cd25f5d486e4ff9 0.2s done
+#40 naming to docker.io/library/perch-stable:latest 0.1s done
+#40 unpacking to docker.io/library/perch-stable:latest 0.2s done
+#40 DONE 1.1s
+
+#37 [controller] exporting to image
+#37 exporting attestation manifest sha256:842f87b203e9c5fb91c1c9b7317195f135ad9e8b7ca457a661c20848640a08a3 0.4s done
+#37 exporting manifest list sha256:a05b26b29f6ab2b3300da0b7a359eaf04f898b1c2c637d981ec93e35f9d50f15 0.1s done
+#37 naming to docker.io/library/perch-controller:latest 0.0s done
+#37 unpacking to docker.io/library/perch-controller:latest
+#37 unpacking to docker.io/library/perch-controller:latest 0.3s done
+#37 DONE 1.2s
+
+#41 [loadgen] resolving provenance for metadata file
+#41 ...
+
+#42 [canary] resolving provenance for metadata file
+#42 DONE 0.1s
+
+#43 [stable] resolving provenance for metadata file
+#43 DONE -2.5s
+
+#41 [loadgen] resolving provenance for metadata file
+#41 DONE -2.5s
+
+#44 [proxy] resolving provenance for metadata file
+#44 DONE 0.4s
+
+#45 [controller] resolving provenance for metadata file
+#45 DONE 0.0s
+ Image perch-canary Built 
+ Image perch-controller Built 
+ Image perch-loadgen Built 
+ Image perch-proxy Built 
+ Image perch-stable Built 
++ docker compose -f /mnt/f/Mini-Projects/CloudComputing/PERCH/docker-compose.yml up -d stable canary proxy prometheus
+ Container perch-canary-1 Recreate 
+ Container perch-stable-1 Recreate 
+ Container perch-canary-1 Recreated 
+ Container perch-stable-1 Recreated 
+ Container perch-proxy Recreate 
+ Container perch-prometheus-1 Running 
+ Container perch-proxy Recreated 
+ Container perch-canary-1 Starting 
+ Container perch-stable-1 Starting 
+ Container perch-canary-1 Started 
+ Container perch-stable-1 Started 
+ Container perch-canary-1 Waiting 
+ Container perch-stable-1 Waiting 
+ Container perch-stable-1 Waiting 
+ Container perch-canary-1 Waiting 
+ Container perch-stable-1 Healthy 
+ Container perch-stable-1 Healthy 
+ Container perch-canary-1 Healthy 
+ Container perch-canary-1 Healthy 
+ Container perch-proxy Starting 
+ Container perch-proxy Started 
++ docker compose -f /mnt/f/Mini-Projects/CloudComputing/PERCH/docker-compose.yml up -d --force-recreate canary
+ Container perch-canary-1 Recreate 
+ Container perch-canary-1 Recreated 
+ Container perch-canary-1 Starting 
+ Container perch-canary-1 Started 
++ docker compose -f /mnt/f/Mini-Projects/CloudComputing/PERCH/docker-compose.yml --profile load up -d --force-recreate loadgen
+ Container perch-canary-1 Running 
+ Container perch-stable-1 Running 
+ Container perch-proxy Running 
+ Container perch-loadgen-1 Recreate 
+ Container perch-loadgen-1 Recreated 
+ Container perch-canary-1 Waiting 
+ Container perch-stable-1 Waiting 
+ Container perch-stable-1 Healthy 
+ Container perch-canary-1 Healthy 
+ Container perch-loadgen-1 Starting 
+ Container perch-loadgen-1 Started 
++ docker compose -f /mnt/f/Mini-Projects/CloudComputing/PERCH/docker-compose.yml up -d --force-recreate controller
+ Container perch-canary-1 Running 
+ Container perch-stable-1 Running 
+ Container perch-proxy Running 
+ Container perch-prometheus-1 Running 
+ Container perch-controller Recreate 
+ Container perch-controller Recreated 
+ Container perch-canary-1 Waiting 
+ Container perch-stable-1 Waiting 
+ Container perch-canary-1 Waiting 
+ Container perch-stable-1 Waiting 
+ Container perch-stable-1 Healthy 
+ Container perch-stable-1 Healthy 
+ Container perch-canary-1 Healthy 
+ Container perch-canary-1 Healthy 
+ Container perch-controller Starting 
+ Container perch-controller Started 
++ docker compose -f /mnt/f/Mini-Projects/CloudComputing/PERCH/docker-compose.yml --profile load stop loadgen controller
+ Container perch-loadgen-1 Stopping 
+ Container perch-controller Stopping 
+ Container perch-controller Stopped 
+ Container perch-loadgen-1 Stopped 
++ /mnt/f/Mini-Projects/CloudComputing/PERCH/.venv/bin/python /mnt/f/Mini-Projects/CloudComputing/PERCH/analysis/plot_results.py --log /mnt/f/Mini-Projects/CloudComputing/PERCH/results/archive/bad-latency_20261120T124735Z/decision_log.jsonl --out-dir /mnt/f/Mini-Projects/CloudComputing/PERCH/results/archive/bad-latency_20261120T124735Z --title bad-latency
+wrote /mnt/f/Mini-Projects/CloudComputing/PERCH/results/archive/bad-latency_20261120T124735Z/rollout.png
+SUMMARY {"scenario": "bad-latency", "expect": "rollback", "ok": true, "decision_mode": "naive_threshold", "final_weight": 0, "promoted": false, "rolled_back": true, "seconds": 5.0, "canary_requests": 13, "canary_errors": 0, "total_requests": 797, "blast_radius_pct": 1.63, "reason": "naive: canary p95 718.8ms > 1.5\u00d7 stable 68.2ms", "run_dir": "results/archive/bad-latency_20261120T124735Z"}

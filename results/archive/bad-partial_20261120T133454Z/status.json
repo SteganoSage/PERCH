@@ -1,0 +1,1 @@
+{"canary_weight": 0, "stable_weight": 100, "rolled_back": true, "promoted": false, "last_action": "rollback", "reason": "error_rate: 6/22 canary requests errors fits H1 (rate 0.074) over H0 (0.024); LLR 5.96 \u2265 5.19"}

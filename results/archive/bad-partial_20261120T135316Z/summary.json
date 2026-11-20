@@ -1,0 +1,16 @@
+{
+  "scenario": "bad-partial",
+  "expect": "rollback",
+  "ok": true,
+  "decision_mode": "tier1",
+  "final_weight": 0,
+  "promoted": false,
+  "rolled_back": true,
+  "seconds": 17.7,
+  "canary_requests": 50,
+  "canary_errors": 15,
+  "total_requests": 1576,
+  "blast_radius_pct": 3.17,
+  "reason": "error_rate: canary error 0.311 vs stable 0.005 significantly worse (\u0394 CI [0.184, 0.454] excludes 0)",
+  "run_dir": "results/archive/bad-partial_20261120T135316Z"
+}

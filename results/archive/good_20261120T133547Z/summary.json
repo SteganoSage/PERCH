@@ -1,0 +1,16 @@
+{
+  "scenario": "good",
+  "expect": "promote",
+  "ok": true,
+  "decision_mode": "tier1",
+  "final_weight": 100,
+  "promoted": true,
+  "rolled_back": false,
+  "seconds": 138.6,
+  "canary_requests": 2869,
+  "canary_errors": 32,
+  "total_requests": 7968,
+  "blast_radius_pct": 36.01,
+  "reason": "error_rate: no stable baseline; canary error 0.011 is not significantly above the 0.05 ceiling; latency: no stable traffic to compare against",
+  "run_dir": "results/archive/good_20261120T133547Z"
+}

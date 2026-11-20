@@ -1,0 +1,16 @@
+{
+  "scenario": "bad-slow-onset",
+  "expect": "rollback",
+  "ok": true,
+  "decision_mode": "naive_threshold",
+  "final_weight": 0,
+  "promoted": false,
+  "rolled_back": true,
+  "seconds": 7.7,
+  "canary_requests": 25,
+  "canary_errors": 2,
+  "total_requests": 1025,
+  "blast_radius_pct": 2.44,
+  "reason": "naive: canary error 0.100 exceeds stable 0.014 by 0.086 (threshold 0.05)",
+  "run_dir": "results/archive/bad-slow-onset_20261120T135225Z"
+}

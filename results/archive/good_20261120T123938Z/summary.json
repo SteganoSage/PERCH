@@ -1,0 +1,16 @@
+{
+  "scenario": "good",
+  "expect": "promote",
+  "ok": true,
+  "decision_mode": "naive_threshold",
+  "final_weight": 100,
+  "promoted": true,
+  "rolled_back": false,
+  "seconds": 139.8,
+  "canary_requests": 2916,
+  "canary_errors": 27,
+  "total_requests": 7990,
+  "blast_radius_pct": 36.5,
+  "reason": "naive: canary within error and latency thresholds",
+  "run_dir": "results/archive/good_20261120T123938Z"
+}

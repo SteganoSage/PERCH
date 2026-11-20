@@ -1,0 +1,1 @@
+{"canary_weight": 100, "stable_weight": 0, "rolled_back": false, "promoted": true, "last_action": "promote", "reason": "error_rate: no stable baseline; canary error 0.011 is not significantly above the 0.05 ceiling; latency: no stable traffic to compare against"}

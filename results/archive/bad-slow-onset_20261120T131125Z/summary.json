@@ -1,0 +1,16 @@
+{
+  "scenario": "bad-slow-onset",
+  "expect": "rollback",
+  "ok": true,
+  "decision_mode": "tier1",
+  "final_weight": 0,
+  "promoted": false,
+  "rolled_back": true,
+  "seconds": 20.0,
+  "canary_requests": 50,
+  "canary_errors": 6,
+  "total_requests": 1522,
+  "blast_radius_pct": 3.29,
+  "reason": "error_rate: canary error 0.106 vs stable 0.012 significantly worse (\u0394 CI [0.027, 0.219] excludes 0)",
+  "run_dir": "results/archive/bad-slow-onset_20261120T131125Z"
+}
