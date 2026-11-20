@@ -1,0 +1,30 @@
+{
+  "generated": "2026-11-20T11:32:43+00:00",
+  "git_commit": "ca0653d (+ uncommitted changes)",
+  "base_seed": 20261120,
+  "rps": 50.0,
+  "max_seconds": 600.0,
+  "runs_per_cell": {
+    "e1": 1000,
+    "e2": 1000,
+    "e3": 1000,
+    "e4": 1000
+  },
+  "defaults": {
+    "background_error": 0.01,
+    "bake_seconds": 25,
+    "stages": [
+      5,
+      10,
+      25,
+      50,
+      100
+    ],
+    "poll_interval_seconds": 5,
+    "alpha": 0.05,
+    "beta": 0.1,
+    "min_samples_per_window": 40,
+    "latency_tolerance": 1.5,
+    "sequential_min_effect": 0.05
+  }
+}

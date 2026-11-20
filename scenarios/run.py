@@ -9,8 +9,9 @@ Each run, in order (CLAUDE.md §5.6):
    controller keeps rewriting status.json with its old state), set the proxy
    to 100% stable, and move aside any stray live result files.
 2. Deploy the scenario's canary: env vars + a recreated container.
-3. Start the load generator, *then* the controller, so the first ramp stage
-   bakes under real traffic instead of an idle stack.
+3. Start the load generator, wait until Prometheus shows a stable baseline,
+   *then* start the controller, so the first ramp stage bakes under real
+   traffic and is judged against real stable numbers.
 4. Wait for the controller to promote or roll back.
 5. Stop both, archive the run to results/archive/<scenario>_<stamp>/, plot
    it, and print a one-line summary.
@@ -26,6 +27,7 @@ import subprocess
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from datetime import UTC, datetime
 from pathlib import Path
@@ -37,6 +39,9 @@ PROXY_CONF = ROOT / "proxy-conf" / "default.conf"
 BOOTSTRAP_CONF = ROOT / "proxy" / "bootstrap.conf"
 COMPOSE = ["docker", "compose", "-f", str(ROOT / "docker-compose.yml")]
 COMPOSE_WITH_LOAD = [*COMPOSE, "--profile", "load"]
+# Stable requests Prometheus must show in the controller's window before the controller starts:
+# ~5s of traffic at 50 rps, enough for a stable error-rate reference (2-3 errors at 1%).
+STABLE_BASELINE_REQUESTS = 250
 # Files the controller and load generator write into results/ while a run is live.
 LIVE_FILES = ("decision_log.jsonl", "status.json", "loadgen.jsonl")
 
@@ -173,6 +178,35 @@ def wait_proxy_weights(want: str, timeout: float = 20.0) -> None:
             return
         time.sleep(0.5)
     raise SystemExit(f"proxy never loaded weights {want}; last saw {seen}")
+
+
+def wait_stable_baseline(timeout: float = 60.0) -> None:
+    """Block until Prometheus shows stable serving traffic in the controller's window.
+
+    The controller judges the canary against stable's recent window. Started before that window
+    has data, its first polls compare against nothing (and Tier 2 cannot start its tests). In
+    production stable has been serving all along; the simulator assumes the same.
+    """
+    window = int(setting("RAMP_BAKE_SECONDS", "25"))
+    query = f'sum(increase(http_requests_total{{service="stable"}}[{window}s]))'
+    url = host_url(
+        "PROMETHEUS_PORT", "9095", "/api/v1/query?" + urllib.parse.urlencode({"query": query})
+    )
+    deadline = time.time() + timeout
+    seen = 0.0
+    while time.time() < deadline:
+        try:
+            with urllib.request.urlopen(url, timeout=2) as response:
+                result = json.loads(response.read())["data"]["result"]
+                seen = float(result[0]["value"][1]) if result else 0.0
+        except (urllib.error.URLError, TimeoutError, ConnectionError, KeyError, ValueError):
+            seen = 0.0
+        if seen >= STABLE_BASELINE_REQUESTS:
+            return
+        time.sleep(1)
+    raise SystemExit(
+        f"stable baseline never reached {STABLE_BASELINE_REQUESTS} requests: {seen:.0f}"
+    )
 
 
 def reset_proxy() -> None:
@@ -350,6 +384,7 @@ def scenario_run(name: str, extra_env: dict | None = None) -> dict:
     reached, status = False, {}
     try:
         run([*COMPOSE_WITH_LOAD, "up", "-d", "--force-recreate", "loadgen"], env=env)
+        wait_stable_baseline()
         run([*COMPOSE, "up", "-d", "--force-recreate", "controller"], env=env)
         reached, status = wait_terminal(spec["expect"], spec["timeout"])
     finally:
