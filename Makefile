@@ -1,5 +1,5 @@
 # PERCH — developer entry points
-.PHONY: help up down logs demo-good demo-bad demo-all test unit e2e fmt lint plots baseline clean
+.PHONY: help up down logs demo-good demo-bad demo-all test unit e2e fmt lint plots baseline campaign simulate clean
 
 COMPOSE := docker compose
 PYTHON ?= python
@@ -15,6 +15,9 @@ help:
 	@echo "  unit        Decision/ramp/proxy-writer tests (no Docker)"
 	@echo "  e2e         HTTP tests against a running stack (not during a scenario)"
 	@echo "  test        unit + e2e"
+	@echo "  simulate    1000 simulated rollouts per scenario and mode (no Docker, ~40s)"
+	@echo "  baseline    Naive vs statistical, good + bad canary, 5 live runs each (~1 hour)"
+	@echo "  campaign    Every scenario x every mode, 5 live runs each (~2 hours)"
 	@echo "  plots       Re-plot a run: make plots RUN=results/archive/<run>"
 	@echo "  clean       Delete live scratch files in results/ (keeps results/archive/)"
 
@@ -39,13 +42,19 @@ demo-all:
 test: unit e2e
 
 unit:
-	$(PYTHON) -m pytest tests/test_decision.py tests/test_stats.py tests/test_ramp.py tests/test_proxy_writer.py -v
+	$(PYTHON) -m pytest tests/test_decision.py tests/test_stats.py tests/test_ramp.py tests/test_proxy_writer.py tests/test_campaign.py -v
 
 e2e:
 	$(PYTHON) -m pytest tests/test_e2e.py -v
 
+simulate:
+	$(PYTHON) analysis/simulate_rollouts.py --runs 1000
+
 baseline:
-	$(PYTHON) analysis/compare_baseline_vs_detector.py
+	$(PYTHON) analysis/compare_baseline_vs_detector.py --repeats 5
+
+campaign:
+	$(PYTHON) analysis/run_campaign.py --repeats 5
 
 plots:
 	$(PYTHON) analysis/plot_results.py --log $(RUN)/decision_log.jsonl --out-dir $(RUN)

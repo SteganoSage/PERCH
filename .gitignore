@@ -13,6 +13,7 @@ venv/
 results/*
 !results/.gitkeep
 !results/archive/
+!results/campaigns/
 results/archive/unscripted_*/
 
 # Rendered proxy config (generated at runtime from nginx.conf.j2)

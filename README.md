@@ -138,6 +138,17 @@ evidence):
 | `summary.json` | Outcome, decision mode, time to promote/rollback, and blast radius (requests the canary served) |
 | `rollout.png` | Three stacked charts: canary weight, error rate, p95 latency, with rollback/promote marked |
 
+**Repeated runs.** `make campaign` (every scenario × every decision mode, 5 runs each, ~2 hours)
+and `make baseline` (naive vs the statistical modes on the good and bad-error canaries, ~1 hour)
+drive the same runner repeatedly. They record each run as it finishes in
+`results/campaigns/<name>_<timestamp>/runs.jsonl`, so `--resume <folder>` picks up an
+interrupted campaign, and write the aggregate there: `table.md` (mean ± sd, variance and range of
+time to outcome and blast radius per scenario and mode) and, for `make baseline`,
+`comparison.md` (live results next to 1,000 simulated runs of the same cells, including how often
+each mode wrongly rolls back a good canary). A full campaign already contains the baseline's runs:
+`python analysis/compare_baseline_vs_detector.py --summarize <campaign folder>` builds
+`comparison.md` from it without running anything again.
+
 `results/rollout.png` is a copy of the latest run's plot. Re-plot any run with
 `make plots RUN=results/archive/<run>`. Logs from a controller started outside the runner
 (e.g. by `make up`) are moved to `results/archive/unscripted_*` and not committed.

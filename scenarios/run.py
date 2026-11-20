@@ -275,11 +275,13 @@ def read_jsonl(path: Path) -> list[dict]:
     return rows
 
 
-def blast_radius(run_dir: Path) -> tuple[int, int]:
-    """(requests the canary served, total requests) from the load generator's log."""
+def blast_radius(run_dir: Path) -> tuple[int, int, int]:
+    """(requests the canary served, how many of those failed, total requests), from the load
+    generator's log."""
     rows = read_jsonl(run_dir / "loadgen.jsonl")
-    canary = sum(1 for row in rows if row.get("service") == "canary")
-    return canary, len(rows)
+    canary = [row for row in rows if row.get("service") == "canary"]
+    failed = sum(1 for row in canary if row.get("status") != 200)
+    return len(canary), failed, len(rows)
 
 
 def time_to_terminal(decisions: list[dict]) -> float | None:
@@ -355,7 +357,7 @@ def scenario_run(name: str, extra_env: dict | None = None) -> dict:
         run_dir = archive_run(name, stamp)
 
     decisions = read_jsonl(run_dir / "decision_log.jsonl")
-    canary_n, total_n = blast_radius(run_dir)
+    canary_n, canary_failed, total_n = blast_radius(run_dir)
     summary = {
         "scenario": name,
         "expect": spec["expect"],
@@ -366,6 +368,7 @@ def scenario_run(name: str, extra_env: dict | None = None) -> dict:
         "rolled_back": status.get("rolled_back"),
         "seconds": time_to_terminal(decisions),
         "canary_requests": canary_n,
+        "canary_errors": canary_failed,
         "total_requests": total_n,
         "blast_radius_pct": round(100.0 * canary_n / total_n, 2) if total_n else 0.0,
         "reason": status.get("reason"),

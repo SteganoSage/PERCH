@@ -201,7 +201,7 @@ def simulate(
     return RunResult("timeout", now, served, errors_served)
 
 
-def _rate_ci(k: int, n: int) -> str:
+def rate_ci(k: int, n: int) -> str:
     """Rate with a 95% Wilson interval, e.g. '4.1% [2.9, 5.6]'."""
     if n == 0:
         return "-"
@@ -261,8 +261,8 @@ def main() -> None:
             hit = [r for r in results if r.outcome == scenario.expect]
             wrong = sum(1 for r in results if r.outcome not in (scenario.expect, "timeout"))
             print(
-                f"{scenario.name:<15}{mode:<17}{_rate_ci(len(hit), len(results)):<28}"
-                f"{_rate_ci(wrong, len(results)):<20}"
+                f"{scenario.name:<15}{mode:<17}{rate_ci(len(hit), len(results)):<28}"
+                f"{rate_ci(wrong, len(results)):<20}"
                 f"{_mean_sd([r.seconds for r in hit]):<20}"
                 f"{_mean_sd([r.canary_requests for r in hit]):<19}"
                 f"{_mean_sd([r.canary_errors for r in hit])}"
