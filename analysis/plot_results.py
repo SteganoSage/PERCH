@@ -42,8 +42,9 @@ def plot_run(rows: list[dict], out_dir: Path, title: str) -> Path:
     if not rows:
         raise SystemExit("decision log is empty")
     style()
-    t0 = rows[0]["unix"]
-    xs = [r["unix"] - t0 for r in rows]
+    clock = "elapsed_s" if "elapsed_s" in rows[0] else "unix"  # monotonic when recorded
+    t0 = rows[0][clock]
+    xs = [r[clock] - t0 for r in rows]
 
     fig, axes = plt.subplots(3, 1, figsize=(10, 8.4), sharex=True)
     fig.suptitle(title, x=0.01, ha="left", fontsize=12, fontweight="bold")

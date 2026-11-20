@@ -318,11 +318,17 @@ def blast_radius(run_dir: Path) -> tuple[int, int, int]:
     return len(canary), failed, len(rows)
 
 
+def decision_seconds(row: dict) -> float:
+    """A decision's time on the controller's monotonic clock (elapsed_s); logs from before it
+    was recorded only have wall-clock unix time, which jumps when the VM resyncs its clock."""
+    return row["elapsed_s"] if "elapsed_s" in row else row["unix"]
+
+
 def time_to_terminal(decisions: list[dict]) -> float | None:
     """Seconds from the controller's first decision to its rollback/promote."""
     for row in decisions:
         if row.get("action") in ("rollback", "promote"):
-            return round(row["unix"] - decisions[0]["unix"], 1)
+            return round(decision_seconds(row) - decision_seconds(decisions[0]), 1)
     return None
 
 

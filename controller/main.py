@@ -34,6 +34,7 @@ def _log_line(
     evaluated: Decision,
     taken,
     now: float,
+    elapsed: float,
 ) -> dict:
     """Build a complete decision log entry for observability.
 
@@ -48,7 +49,8 @@ def _log_line(
         stable: MetricSample from stable service
         evaluated: Decision object from the evaluation logic
         taken: Action actually taken (may differ from evaluated due to bake time)
-        now: Current timestamp
+        now: Wall-clock timestamp (what Prometheus was queried at)
+        elapsed: Monotonic seconds since the controller started
 
     Returns:
         Dictionary containing all decision context for logging
@@ -56,6 +58,7 @@ def _log_line(
     return {
         "ts": datetime.fromtimestamp(now, tz=UTC).isoformat(),
         "unix": now,
+        "elapsed_s": elapsed,
         "canary_weight": state.canary_weight,
         "stable_weight": state.stable_weight,
         "rolled_back": state.rolled_back,
@@ -148,8 +151,13 @@ def run(cfg: ControllerConfig) -> None:
         debounce_seconds=cfg.proxy_reload_debounce_seconds,
     )
 
-    now = time.time()
-    state = initial_state(cfg.ramp, now)
+    # Two clocks. Durations (the poll schedule, bake time, the log's elapsed_s) use the monotonic
+    # clock, which never jumps. Wall-clock time is only for Prometheus query timestamps and the
+    # log's ts/unix, because Prometheus stores wall-clock times. Docker Desktop's VM steps its wall
+    # clock by ~2.3s whenever it resyncs with the host; timing the bake on it cost an extra poll
+    # per stage and made durations read short.
+    started = time.monotonic()
+    state = initial_state(cfg.ramp, 0.0)
     print(
         f"controller starting mode={mode} first_weight={state.canary_weight}% "
         f"stages={list(cfg.ramp.stages)} bake={cfg.ramp.bake_seconds}s",
@@ -160,6 +168,8 @@ def run(cfg: ControllerConfig) -> None:
     window = cfg.ramp.bake_seconds
     sprt: SprtState | None = None
     while True:
+        tick = time.monotonic()
+        elapsed = tick - started
         loop_start = time.time()
         try:
             canary = prom.sample("canary", window, at=loop_start)
@@ -176,7 +186,7 @@ def run(cfg: ControllerConfig) -> None:
                 )
             else:
                 evaluated = evaluate(canary, stable, cfg.decision, mode)
-            new_state, taken = apply_decision(state, evaluated, cfg.ramp, loop_start)
+            new_state, taken = apply_decision(state, evaluated, cfg.ramp, elapsed)
             if new_state.canary_weight != state.canary_weight:
                 writer.apply(new_state.stable_weight, new_state.canary_weight)
                 print(
@@ -185,15 +195,14 @@ def run(cfg: ControllerConfig) -> None:
                     flush=True,
                 )
             state = new_state
-            record = _log_line(state, canary, stable, evaluated, taken, loop_start)
+            record = _log_line(state, canary, stable, evaluated, taken, loop_start, elapsed)
             with log_path.open("a", encoding="utf-8") as fh:
                 fh.write(json.dumps(record) + "\n")
             _write_status(status_path, state, taken, evaluated.reason)
         except Exception as exc:
             print(f"controller tick failed: {exc!r}", flush=True)
 
-        elapsed = time.time() - loop_start
-        time.sleep(max(0.0, cfg.poll_interval_seconds - elapsed))
+        time.sleep(max(0.0, cfg.poll_interval_seconds - (time.monotonic() - tick)))
 
 
 if __name__ == "__main__":

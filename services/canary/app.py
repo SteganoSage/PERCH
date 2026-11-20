@@ -79,6 +79,12 @@ LATENCY = Histogram(
     ["service"],
     buckets=LATENCY_BUCKETS,
 )
+# Create this service's series at zero now rather than at their first request. Prometheus's
+# increase() only counts changes between scrapes, so a series that first appears already at 1
+# hides that first request (or error) from every window-based query.
+for _status in ("200", "500"):
+    REQUESTS.labels(service=SERVICE_NAME, status=_status)
+LATENCY.labels(service=SERVICE_NAME)
 
 app = FastAPI(title=f"perch-{SERVICE_NAME}")
 

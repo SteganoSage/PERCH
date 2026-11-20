@@ -450,8 +450,9 @@ def fig_live_timelines(campaign: Path) -> Path:
                 log = ROOT / match[0]["run_dir"] / "decision_log.jsonl"
                 lines = log.read_text(encoding="utf-8").splitlines()
                 decisions = [json.loads(line) for line in lines if line]
-                t0 = decisions[0]["unix"]
-                xs = [d["unix"] - t0 for d in decisions]
+                clock = "elapsed_s" if "elapsed_s" in decisions[0] else "unix"
+                t0 = decisions[0][clock]
+                xs = [d[clock] - t0 for d in decisions]
                 ax.step(
                     xs,
                     [d["canary_weight"] for d in decisions],

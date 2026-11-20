@@ -27,7 +27,8 @@ Defaults everywhere: 50 requests/s, 1% background errors on both versions, ramp 
 4. **tier1's blast radius is set by its sample floor, not by the data**: 50 ± 1.5 requests on every
    loud fault, live and simulated, because it cannot decide before 40 canary requests.
 5. **The prediction file scored 7/8 falsifiable claims and 20/30 per-cell ranges.** Every miss has
-   a mechanism (below); two of them are real bugs the campaign uncovered.
+   a mechanism (below); two were real bugs the campaign uncovered, since fixed and
+   verified live.
 
 ## Simulation
 
@@ -181,17 +182,30 @@ Per-cell ranges: 20/30 live means inside the predicted range.
   counters and is unaffected, which is also why it sometimes rolled back while the window still
   showed 0 errors.
 
-### Bugs this uncovered
+### Bugs this uncovered, and fixed
 
-1. **Counter series should exist from startup.** Initialising the `status="200"` and
-   `status="500"` series at 0 when the service starts (standard Prometheus practice) makes the
-   first errors visible to `increase()`, which would bring naive and tier1 back to first-poll
-   detection.
-2. **Durations should use the monotonic clock.** Timing the bake and the reported time-to-outcome
-   on `time.monotonic()`, and keeping wall-clock only for Prometheus query timestamps, removes the
-   extra poll per stage and the short-reading durations.
+1. **Counter series now exist from startup.** Each service creates its `status="200"` and
+   `status="500"` series (and its latency histogram) at 0 when it starts, standard Prometheus
+   practice, so `increase()` sees the very first request and error.
+2. **Durations now use the monotonic clock.** The controller times the poll schedule and the
+   bake on `time.monotonic()` and logs it as `elapsed_s`; wall-clock time is kept only for
+   Prometheus query timestamps. Reported time-to-outcome uses `elapsed_s`.
 
-Neither affects which canaries were caught. The campaign above predates both fixes.
+The campaign above predates both fixes. Twelve verification runs after them
+([`postfix-counters`](../campaigns/postfix-counters_20261120T142655Z/table.md),
+[`postfix-clock`](../campaigns/postfix-clock_20261120T143500Z/table.md)):
+
+| | before (live campaign) | after the fixes | simulator |
+|---|---|---|---|
+| naive, bad-error: canary requests before rollback | 18.0 ± 6.9; 2 of 5 needed a 2nd poll | **12.6 ± 0.5**; 5/5 at the first poll | 12.2 |
+| naive, bad-partial | 20.0 ± 6.9; 3 of 5 needed a 2nd poll | **12.6 ± 0.5**; 5/5 at the first poll | 12.7 |
+| good (tier2): polls to promote | 30–32 | **25** (every gap exactly 5.0s) | 25–27 |
+| good (tier2): canary requests | 2,891 ± 31 | **2,424 ± 4** | 2,404 |
+
+Every post-fix first poll saw the canary's errors (1–4 of 3–11 requests). Live and simulated
+blast radius now agree to within one request for the naive rule. Durations are on the controller's
+own clock: on this machine that clock runs ~8% fast against the Windows host, so a 125s rollout is
+about 115s of host time, an environment property no in-container clock can correct.
 
 ## Evaluation tests
 

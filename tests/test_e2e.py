@@ -87,6 +87,9 @@ def test_metrics_labelled_by_service(stack_up: None) -> None:
         assert "http_requests_total" in text
         assert f'service="{name}"' in text
         assert "http_request_duration_seconds" in text
+        # Created at zero at startup, before any error: a series that first appears at 1 would
+        # hide its first increment from Prometheus's increase().
+        assert f'http_requests_total{{service="{name}",status="500"}}' in text
 
 
 def test_prometheus_targets_up(stack_up: None) -> None:

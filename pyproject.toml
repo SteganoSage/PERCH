@@ -19,5 +19,5 @@ select = ["E", "F", "I", "UP", "B"]
 testpaths = ["tests"]
 # decision.py/ramp.py import their siblings by bare name (they do the same inside the container),
 # so the controller package dir has to be importable from the host test run too; likewise the
-# analysis scripts, which import each other.
-pythonpath = ["controller", "analysis"]
+# analysis scripts, which import each other, and the scenario runner.
+pythonpath = ["controller", "analysis", "scenarios"]

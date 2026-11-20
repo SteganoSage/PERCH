@@ -1,0 +1,22 @@
+{
+  "started": "20261120T143500Z",
+  "scenarios": [
+    "good"
+  ],
+  "modes": [
+    "tier2_sprt"
+  ],
+  "repeats": 2,
+  "cells": [
+    [
+      0,
+      "good",
+      "tier2_sprt"
+    ],
+    [
+      1,
+      "good",
+      "tier2_sprt"
+    ]
+  ]
+}

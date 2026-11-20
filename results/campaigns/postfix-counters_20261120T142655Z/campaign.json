@@ -1,0 +1,63 @@
+{
+  "started": "20261120T142655Z",
+  "scenarios": [
+    "bad-error",
+    "bad-partial"
+  ],
+  "modes": [
+    "naive_threshold"
+  ],
+  "repeats": 5,
+  "cells": [
+    [
+      0,
+      "bad-error",
+      "naive_threshold"
+    ],
+    [
+      0,
+      "bad-partial",
+      "naive_threshold"
+    ],
+    [
+      1,
+      "bad-error",
+      "naive_threshold"
+    ],
+    [
+      1,
+      "bad-partial",
+      "naive_threshold"
+    ],
+    [
+      2,
+      "bad-error",
+      "naive_threshold"
+    ],
+    [
+      2,
+      "bad-partial",
+      "naive_threshold"
+    ],
+    [
+      3,
+      "bad-error",
+      "naive_threshold"
+    ],
+    [
+      3,
+      "bad-partial",
+      "naive_threshold"
+    ],
+    [
+      4,
+      "bad-error",
+      "naive_threshold"
+    ],
+    [
+      4,
+      "bad-partial",
+      "naive_threshold"
+    ]
+  ]
+}
